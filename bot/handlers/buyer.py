@@ -23,6 +23,7 @@ from bot.keyboards import (
     consent_kb,
     help_kb,
     main_menu_kb,
+    pay_kb,
     profile_kb,
     receipt_decision_kb,
 )
@@ -278,8 +279,19 @@ async def show_subscription(message: Message, db_user: dict | None) -> None:
         await message.answer(
             t("sub_none", lang) + "\n\n" +
             t("pay_prompt", lang, price=settings.subscription_price, phone=settings.kaspi_phone),
-            reply_markup=profile_kb(),
+            reply_markup=pay_kb(lang),
         )
+
+
+@router.callback_query(F.data == "paid:hint")
+async def paid_hint(call: CallbackQuery) -> None:
+    """Кнопка «Я оплатил» — просим прислать скрин чека."""
+    lang = settings.default_lang
+    if await payments.has_pending(call.from_user.id):
+        await call.answer(t("pay_duplicate", lang), show_alert=True)
+        return
+    await call.message.answer(t("paid_hint", lang))
+    await call.answer()
 
 
 async def _visit_history(user_id: int, limit: int = 5) -> str:

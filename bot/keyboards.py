@@ -72,6 +72,15 @@ def profile_kb() -> InlineKeyboardMarkup | None:
     return miniapp_kb("📱 Открыть приложение", "/#/profile")
 
 
+def pay_kb(lang: str = "ru") -> InlineKeyboardMarkup:
+    """Под сообщением об оплате: «Я оплатил» + вход в Mini App."""
+    rows = [[InlineKeyboardButton(text=t("btn_paid", lang), callback_data="paid:hint")]]
+    app_btn = miniapp_button("📱 Открыть приложение", "/#/profile")
+    if app_btn:
+        rows.append([app_btn])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
 def broadcast_confirm_kb() -> InlineKeyboardMarkup:
     """Подтверждение рассылки после предпросмотра (раздел 3.5)."""
     return InlineKeyboardMarkup(
