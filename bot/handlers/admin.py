@@ -92,16 +92,16 @@ async def admin_menu(message: Message, role: str) -> None:
         return
     await message.answer(
         "🛠 Админка:\n"
-        "/add_partner <tg_id> <название> — добавить партнёра\n"
-        "/set_location <partner_id> <lat> <lng> — координаты (пин на карте)\n"
-        "фото с подписью «/logo <partner_id>» — логотип партнёра\n"
-        "/qr <partner_id> — QR-наклейка на кассу\n"
+        "/add_partner {tg_id} {название} — добавить партнёра\n"
+        "/set_location {partner_id} {lat} {lng} — координаты (пин на карте)\n"
+        "фото с подписью «/logo {partner_id}» — логотип партнёра\n"
+        "/qr {partner_id} — QR-наклейка на кассу\n"
         "/subs — список подписчиков\n"
         "/receipts — очередь чеков\n"
-        "/refund <subscription_id> — возврат Stars-платежа\n"
-        "/broadcast <all|subscribers|expired> <текст> — рассылка\n"
+        "/refund {subscription_id} — возврат Stars-платежа\n"
+        "/broadcast {all|subscribers|expired} {текст} — рассылка\n"
         "/stats — метрики\n"
-        "/ban <tg_id> · /unban <tg_id> — модерация"
+        "/ban {tg_id} · /unban {tg_id} — модерация"
     )
 
 
@@ -112,7 +112,7 @@ async def add_partner(message: Message, role: str, command: CommandObject) -> No
     parts = (command.args or "").split(maxsplit=1)
     tg_id = _safe_int(parts[0]) if parts else None
     if len(parts) < 2 or tg_id is None:
-        await message.answer("Формат: /add_partner <tg_id> <название>")
+        await message.answer("Формат: /add_partner {tg_id} {название}")
         return
     name = parts[1]
     # Заводим пользователя (если нет) и повышаем роль до partner.
@@ -137,7 +137,7 @@ async def set_location(message: Message, role: str, command: CommandObject) -> N
         pid, lat, lng = int(parts[0]), float(parts[1]), float(parts[2])
     except (IndexError, ValueError):
         await message.answer(
-            "Формат: /set_location <partner_id> <lat> <lng>\n"
+            "Формат: /set_location {partner_id} {lat} {lng}\n"
             "Координаты можно скопировать из 2GIS (ПКМ по точке)."
         )
         return
@@ -175,7 +175,7 @@ async def refund_stars(message: Message, role: str, command: CommandObject) -> N
     if role != "admin":
         return
     if not (command.args or "").strip().isdigit():
-        await message.answer("Формат: /refund <subscription_id> (см. /subs)")
+        await message.answer("Формат: /refund {subscription_id} (см. /subs)")
         return
     try:
         sub = await payments.refund_stars(message.bot, int(command.args.strip()))
@@ -198,7 +198,7 @@ async def partner_qr(message: Message, role: str, command: CommandObject) -> Non
         return
     pid = _safe_int((command.args or "").strip())
     if pid is None:
-        await message.answer("Формат: /qr <partner_id>")
+        await message.answer("Формат: /qr {partner_id}")
         return
     me = await message.bot.get_me()
     png = qr.partner_qr(me.username, pid)
@@ -330,7 +330,7 @@ async def moderate_user(message: Message, role: str, command: CommandObject) -> 
     if role != "admin":
         return
     if not (command.args or "").strip().isdigit():
-        await message.answer(f"Формат: /{command.command} <tg_id>")
+        await message.answer(f"Формат: /{command.command} {{tg_id}}")
         return
     banned = command.command == "ban"
     res = await db.execute(
@@ -349,7 +349,7 @@ async def broadcast_preview(message: Message, role: str, command: CommandObject,
         return
     parts = (command.args or "").split(maxsplit=1)
     if len(parts) < 2 or parts[0] not in ("all", "subscribers", "expired"):
-        await message.answer("Формат: /broadcast <all|subscribers|expired> <текст>")
+        await message.answer("Формат: /broadcast {all|subscribers|expired} {текст}")
         return
     segment, text = parts[0], parts[1]
 
