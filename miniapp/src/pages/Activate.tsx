@@ -149,9 +149,7 @@ export default function Activate() {
 
   return (
     <div className="vg-act">
-      <div className="vg-act-kind">
-        {data.kind === 'daily' ? 'Скидка дня · для всех' : 'Скидка по подписке'}
-      </div>
+      <div className="vg-act-kind">Скидка по подписке</div>
       <div className="vg-act-partner">{data.partner_name}</div>
       <div className="vg-act-pct">−{data.discount}%</div>
       <div className="vg-act-client">{data.client_name} · {today}</div>

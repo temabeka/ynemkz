@@ -1,5 +1,5 @@
 """Админка в Mini App: чеки, метрики, партнёры (CRUD + QR + логотип), люди
-(карточка, ручная подписка), календарь скидки дня, рассылки, бан, возвраты Stars."""
+(карточка, ручная подписка), рассылки, бан, возвраты Stars."""
 from __future__ import annotations
 
 import asyncio
@@ -177,7 +177,6 @@ class PartnerPatch(BaseModel):
     category: Category | None = None
     address: str | None = None
     work_hours: str | None = None
-    discount_free: int | None = None
     discount_premium: int | None = None
     avg_check: int | None = None
     lat: float | None = None
@@ -335,8 +334,7 @@ async def user_detail(user_id: int) -> dict:
     visits = await db.fetch(
         """
         SELECT p.name, r.used_at,
-               coalesce(r.discount,
-                 CASE WHEN r.type = 'premium' THEN p.discount_premium ELSE p.discount_free END) AS discount
+               coalesce(r.discount, p.discount_premium) AS discount
         FROM redemptions r JOIN partners p ON p.id = r.partner_id
         WHERE r.user_id = $1 AND r.status = 'used'
         ORDER BY r.used_at DESC LIMIT 20
@@ -418,43 +416,6 @@ async def refund(sub_id: int) -> dict:
     finally:
         await bot.session.close()
     return {"ok": True}
-
-
-# --- Календарь скидки дня ----------------------------------------------------------
-
-class DailyDealBody(BaseModel):
-    partner_id: int
-    deal_date: str  # YYYY-MM-DD
-    description: str | None = None
-
-
-@router.post("/daily-deals")
-async def set_daily_deal(body: DailyDealBody) -> dict:
-    await db.execute(
-        """
-        INSERT INTO daily_deals (partner_id, deal_date, description)
-        VALUES ($1, $2::date, $3)
-        ON CONFLICT (deal_date) DO UPDATE
-          SET partner_id = EXCLUDED.partner_id, description = EXCLUDED.description
-        """,
-        body.partner_id,
-        body.deal_date,
-        body.description,
-    )
-    return {"ok": True}
-
-
-@router.get("/daily-deals")
-async def daily_deals() -> list[dict]:
-    rows = await db.fetch(
-        """
-        SELECT d.deal_date, d.description, p.id AS partner_id, p.name
-        FROM daily_deals d JOIN partners p ON p.id = d.partner_id
-        WHERE d.deal_date >= now()::date
-        ORDER BY d.deal_date
-        """
-    )
-    return [dict(r) for r in rows]
 
 
 # --- Рассылка (предпросмотр → отправка) ---------------------------------------------

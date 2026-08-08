@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button, Spinner } from '@telegram-apps/telegram-ui';
 import { miniApp, openLink } from '@telegram-apps/sdk-react';
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
-import { type DailyDeal, type Partner } from './../api';
+import { type Partner } from './../api';
 import { useCachedApi } from './../hooks';
 import { partnerPin, TILE_ATTRIBUTION, tileUrl } from './leafletIcon';
 
@@ -29,9 +29,8 @@ function ClickCatcher({ onClick }: { onClick: () => void }) {
 
 /** Leaflet-реализация карты. Вся движко-специфика живёт здесь: при переходе
  *  на 2ГИС MapGL заменяется только этот компонент, страница не меняется. */
-function LeafletMap({ points, dealId, selected, onSelect }: {
+function LeafletMap({ points, selected, onSelect }: {
   points: Partner[];
-  dealId: number | null;
   selected: Partner | null;
   onSelect: (p: Partner | null) => void;
 }) {
@@ -46,7 +45,7 @@ function LeafletMap({ points, dealId, selected, onSelect }: {
       {points.map((p) => (
         <Marker key={p.id} position={[p.lat!, p.lng!]}
                 icon={partnerPin(p.name, p.logo_url, p.discount_premium,
-                                 { selected: selected?.id === p.id, deal: p.id === dealId })}
+                                 { selected: selected?.id === p.id })}
                 eventHandlers={{ click: () => onSelect(p) }} />
       ))}
       {!selected && <LocateButton />}
@@ -60,7 +59,6 @@ export default function MapPage() {
   // useCachedApi: точки из кэша рисуются мгновенно, свежий запрос — только
   // если прошлый ответ старше TTL (переключение вкладок не дёргает сеть).
   const [pins, retryPins] = useCachedApi<Partner[]>('/map');
-  const [deal] = useCachedApi<DailyDeal | null>('/daily-deal');
   const [selected, setSelected] = useState<Partner | null>(null);
 
   // Партнёры без координат на карту не попадают
@@ -75,8 +73,7 @@ export default function MapPage() {
 
   return (
     <div className="map-full">
-      <LeafletMap points={shown} dealId={deal?.id ?? null}
-                  selected={selected} onSelect={setSelected} />
+      <LeafletMap points={shown} selected={selected} onSelect={setSelected} />
 
       {/* Карточка выбранного заведения — вместо тесного Leaflet-попапа */}
       {selected && (

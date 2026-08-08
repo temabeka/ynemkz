@@ -28,17 +28,17 @@ export function tileUrl(dark: boolean): string {
 }
 
 /** Пин партнёра: логотип (или инициал) в круге + бейдж скидки.
- *  selected — тап по пину, deal — сегодняшний партнёр дня (пульсирует). */
+ *  selected — тап по пину. */
 export function partnerPin(
   name: string,
   logoUrl: string | null | undefined,
   discount: number,
-  { selected = false, deal = false } = {},
+  { selected = false } = {},
 ): L.DivIcon {
   const inner = logoUrl
     ? `<img src="${logoUrl.replace(/"/g, '&quot;')}" alt="" />`
     : `<span>${(name[0] ?? '•').toUpperCase()}</span>`;
-  const cls = `vg-pin${selected ? ' is-on' : ''}${deal ? ' is-deal' : ''}`;
+  const cls = `vg-pin${selected ? ' is-on' : ''}`;
   return L.divIcon({
     className: 'vg-pin-wrap',
     html: `<div class="${cls}">${inner}<b>−${discount}%</b></div>`,

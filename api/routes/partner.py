@@ -87,13 +87,12 @@ async def activations(user: dict = Depends(require_role("partner", "admin"))) ->
     rows = await db.fetch(
         """
         SELECT u.full_name, r.used_at,
-               coalesce(r.discount,
-                 CASE WHEN r.type = 'premium' THEN $2 ELSE $3 END) AS discount
+               coalesce(r.discount, $2) AS discount
         FROM redemptions r JOIN users u ON u.id = r.user_id
         WHERE r.partner_id = $1 AND r.status = 'used'
         ORDER BY r.used_at DESC LIMIT 30
         """,
-        partner["id"], partner["discount_premium"], partner["discount_free"],
+        partner["id"], partner["discount_premium"],
     )
     return [dict(r) for r in rows]
 

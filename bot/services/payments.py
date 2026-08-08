@@ -263,9 +263,7 @@ async def savings(user_id: int) -> tuple[int, int]:
         """
         SELECT count(*) AS visits,
                coalesce(sum(
-                 p.avg_check * coalesce(r.discount,
-                   CASE WHEN r.type = 'premium'
-                        THEN p.discount_premium ELSE p.discount_free END) / 100
+                 p.avg_check * coalesce(r.discount, p.discount_premium) / 100
                ), 0)::int AS saved
         FROM redemptions r JOIN partners p ON p.id = r.partner_id
         WHERE r.user_id = $1 AND r.status = 'used'

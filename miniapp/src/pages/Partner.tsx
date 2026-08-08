@@ -97,10 +97,6 @@ export default function PartnerPage() {
           <div className="vg-stat-num" style={{ color: 'var(--vg-accent)' }}>−{partner.discount_premium}%</div>
           <div className="vg-stat-cap">по подписке</div>
         </div>
-        <div className="vg-stat">
-          <div className="vg-stat-num">−{partner.discount_free}%</div>
-          <div className="vg-stat-cap">по скидке дня, всем</div>
-        </div>
       </div>
 
       {(partner.address || partner.work_hours) && (

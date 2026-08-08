@@ -30,7 +30,6 @@ interface Card {
   category: string | null;
   address: string | null;
   work_hours: string | null;
-  discount_free: number;
   discount_premium: number;
   avg_check: number | null;
   is_paused: boolean;

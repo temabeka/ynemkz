@@ -1,4 +1,4 @@
-"""Покупатель: /start + онбординг, скидка дня, подписка, активация (раздел 3.6).
+"""Покупатель: /start + онбординг, подписка, активация (раздел 3.6).
 
 Один обработчик /start разбирает deep links:
   p_<id>  → активация у партнёра (вариант C)
@@ -23,7 +23,7 @@ from bot.keyboards import (
     consent_kb,
     help_kb,
     main_menu_kb,
-    notify_toggle_kb,
+    profile_kb,
     receipt_decision_kb,
 )
 from bot.services import partners, payments, qr, redemption, storage
@@ -227,26 +227,6 @@ async def _tick_screen(screen: Message, render, lang: str) -> None:
 
 # --- Главное меню ---------------------------------------------------------------
 
-@router.message(F.text == t("btn_daily"))
-async def show_daily(message: Message) -> None:
-    lang = settings.default_lang
-    row = await db.fetchrow(
-        """
-        SELECT d.description, p.name, p.address, p.discount_free
-        FROM daily_deals d JOIN partners p ON p.id = d.partner_id
-        WHERE d.deal_date = now()::date
-        """
-    )
-    if row is None:
-        await message.answer(t("no_daily_deal", lang))
-        return
-    await message.answer(
-        f"🔥 <b>{row['name']}</b> — скидка {row['discount_free']}%\n"
-        f"{row['description'] or ''}\n📍 {row['address'] or ''}\n\n"
-        "Как получить: отсканируйте QR-наклейку на кассе заведения."
-    )
-
-
 @router.message(F.text == t("btn_all"))
 async def show_catalog(message: Message) -> None:
     """Каталог текстом — MVP без Mini App (раздел 4.5, фазировка п.1)."""
@@ -277,7 +257,6 @@ async def show_catalog(message: Message) -> None:
 @router.message(F.text == t("btn_sub"))
 async def show_subscription(message: Message, db_user: dict | None) -> None:
     lang = settings.default_lang
-    notify_on = db_user["notify_daily"] if db_user else True
     sub = await payments.active_subscription(message.from_user.id)
     if sub:
         days = (sub["expires_at"] - datetime.now(timezone.utc)).days
@@ -292,23 +271,23 @@ async def show_subscription(message: Message, db_user: dict | None) -> None:
         # Продление доступно до истечения — дни стекуются (раздел 3.1).
         text += "\n\n" + t("sub_renew_hint", lang,
                            price=settings.subscription_price, phone=settings.kaspi_phone)
-        await message.answer(text, reply_markup=notify_toggle_kb(notify_on, lang))
+        await message.answer(text, reply_markup=profile_kb())
     elif await payments.has_pending(message.from_user.id):
-        await message.answer(t("sub_pending", lang), reply_markup=notify_toggle_kb(notify_on, lang))
+        await message.answer(t("sub_pending", lang), reply_markup=profile_kb())
     else:
         await message.answer(
             t("sub_none", lang) + "\n\n" +
             t("pay_prompt", lang, price=settings.subscription_price, phone=settings.kaspi_phone),
-            reply_markup=notify_toggle_kb(notify_on, lang),
+            reply_markup=profile_kb(),
         )
 
 
 async def _visit_history(user_id: int, limit: int = 5) -> str:
-    """Последние визиты: заведение, дата, % (по текущему проценту партнёра)."""
+    """Последние визиты: заведение, дата, % (зафиксированный на момент визита)."""
     rows = await db.fetch(
         """
         SELECT p.name, r.used_at,
-               CASE WHEN r.type = 'premium' THEN p.discount_premium ELSE p.discount_free END AS disc
+               COALESCE(r.discount, p.discount_premium) AS disc
         FROM redemptions r JOIN partners p ON p.id = r.partner_id
         WHERE r.user_id = $1 AND r.status = 'used'
         ORDER BY r.used_at DESC LIMIT $2
@@ -317,21 +296,6 @@ async def _visit_history(user_id: int, limit: int = 5) -> str:
         limit,
     )
     return "\n".join(f"• {r['used_at']:%d.%m} — {r['name']}, {r['disc']}%" for r in rows)
-
-
-@router.callback_query(F.data == "notify:toggle")
-async def toggle_notify(call: CallbackQuery) -> None:
-    lang = settings.default_lang
-    new = await db.fetchval(
-        "UPDATE users SET notify_daily = NOT notify_daily WHERE id = $1 RETURNING notify_daily",
-        call.from_user.id,
-    )
-    if new is None:  # не зарегистрирован
-        await call.answer(t("error", lang), show_alert=True)
-        return
-    with contextlib.suppress(Exception):  # markup мог не измениться
-        await call.message.edit_reply_markup(reply_markup=notify_toggle_kb(new, lang))
-    await call.answer(t("notify_on" if new else "notify_off", lang))
 
 
 @router.message(StateFilter(None), F.photo)

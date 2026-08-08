@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { openTelegramLink } from '@telegram-apps/sdk-react';
 import { Button, Input } from '@telegram-apps/telegram-ui';
-import { categoryRank, type DailyDeal, type Me, type Partner } from './../api';
+import { categoryRank, type Me, type Partner } from './../api';
 import { ErrorState, useCachedApi } from './../hooks';
 import { QrIcon } from './../icons';
 
@@ -19,8 +19,7 @@ function Landing({ guest, partners }: { guest?: boolean; partners?: Partner[] })
     <div className="vg-land">
       <div className="vg-land-title">Одна подписка — скидки каждый день</div>
       <div className="vg-land-sub">
-        Ynem — дисконт-клуб Экибастуза: до −{maxPct}% у партнёров города по подписке,
-        а скидка дня — бесплатно для всех.
+        Ynem — дисконт-клуб Экибастуза: до −{maxPct}% у партнёров города по подписке.
       </div>
       <div className="vg-land-steps">
         <div className="vg-land-step"><span>1</span>Сканируете QR-наклейку на кассе заведения</div>
@@ -59,7 +58,6 @@ function Logo({ src, name }: { src: string | null; name: string }) {
 
 export default function Home() {
   const navigate = useNavigate();
-  const [deal] = useCachedApi<DailyDeal | null>('/daily-deal');
   const [partners, retryPartners, catalogErr] = useCachedApi<Partner[]>('/catalog');
   // /me уже запрошен в App — здесь ответ придёт из кэша без второго запроса
   const [me] = useCachedApi<Me>('/me');
@@ -124,20 +122,6 @@ export default function Home() {
   return (
     <div className="vg-page vg-stagger">
       {brand}
-
-      {deal && (
-        <div className="vg-hero" onClick={() => navigate(`/partners/${deal.id}`)}>
-          <div className="vg-hero-label">Скидка дня · для всех</div>
-          <div className="vg-hero-row">
-            <div className="vg-hero-name">{deal.name}</div>
-            <div className="vg-hero-pct">−{deal.discount_free}%</div>
-          </div>
-          {deal.description && <div className="vg-hero-desc">{deal.description}</div>}
-          <div className="vg-hero-meta">
-            {deal.address ? `${deal.address} · ` : ''}сканируйте QR на кассе
-          </div>
-        </div>
-      )}
 
       {/* Лендинг — пока нет активной подписки; подписчику питч не нужен */}
       {me?.subscription.active !== true && <Landing partners={partners} />}

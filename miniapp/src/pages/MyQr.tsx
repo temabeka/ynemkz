@@ -157,7 +157,7 @@ export default function MyQr({ me }: { me: Me | null | undefined }) {
       <div className="vg-qr-note">
         {premium
           ? 'Покажите QR кассиру — он отсканирует, и скидка запишется сразу.'
-          : 'Без подписки QR действует только у партнёра дня. Подписка откроет скидки 10–15% у всех.'}
+          : 'Скидки доступны по подписке — оформите её, и QR заработает у всех партнёров.'}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 320 }}>

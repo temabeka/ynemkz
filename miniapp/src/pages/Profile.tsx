@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Cell, List, Placeholder, Section, Switch } from '@telegram-apps/telegram-ui';
+import { Button, Cell, List, Placeholder, Section } from '@telegram-apps/telegram-ui';
 import { invoice, openTelegramLink } from '@telegram-apps/sdk-react';
 import { api, type Me, type Visit } from './../api';
 import { useCountUp, useMainButton } from './../hooks';
@@ -16,7 +16,6 @@ export default function Profile({ me, onChange }: {
   // undefined — история грузится, null — не загрузилась (секцию скрываем без шума)
   const [visits, setVisits] = useState<Visit[] | null | undefined>(undefined);
   const [paying, setPaying] = useState(false);
-  const [notifyBusy, setNotifyBusy] = useState(false);
 
   useEffect(() => {
     api<Visit[]>('/me/visits').then(setVisits).catch(() => setVisits(null));
@@ -68,18 +67,6 @@ export default function Profile({ me, onChange }: {
   const payKaspi = () => {
     // Ручной флоу: перевод + скрин чека в чат бота (раздел 3.1)
     if (BOT) try { openTelegramLink(`https://t.me/${BOT}`); } catch { /* dev */ }
-  };
-
-  const toggleNotify = async (enabled: boolean) => {
-    // Оптимистично переключаем; при ошибке сети откатываем обратно
-    setNotifyBusy(true);
-    onChange({ ...me, notify_daily: enabled });
-    try {
-      await api('/me/notify', { method: 'POST', body: JSON.stringify({ enabled }) });
-    } catch {
-      onChange({ ...me, notify_daily: !enabled });
-    }
-    setNotifyBusy(false);
   };
 
   const sub = me.subscription;
@@ -173,17 +160,6 @@ export default function Profile({ me, onChange }: {
           </Section>
         </List>
       )}
-
-      <div className="vg-h">Настройки</div>
-      <List>
-        <Section>
-          <Cell after={<Switch checked={me.notify_daily}
-                               disabled={notifyBusy}
-                               onChange={(e) => toggleNotify(e.target.checked)} />}>
-            Утренняя скидка дня
-          </Cell>
-        </Section>
-      </List>
     </div>
   );
 }

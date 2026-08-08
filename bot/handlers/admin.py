@@ -1,11 +1,10 @@
-"""Админ (в боте, раздел 3.5): партнёры, скидка дня, подписчики, заявки, рассылка."""
+"""Админ (в боте, раздел 3.5): партнёры, подписчики, заявки, рассылка."""
 from __future__ import annotations
 
 import asyncio
 import contextlib
 import hmac
 import logging
-from datetime import date
 
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
@@ -97,7 +96,6 @@ async def admin_menu(message: Message, role: str) -> None:
         "/set_location <partner_id> <lat> <lng> — координаты (пин на карте)\n"
         "фото с подписью «/logo <partner_id>» — логотип партнёра\n"
         "/qr <partner_id> — QR-наклейка на кассу\n"
-        "/deal <partner_id> <YYYY-MM-DD> — скидка дня\n"
         "/subs — список подписчиков\n"
         "/receipts — очередь чеков\n"
         "/refund <subscription_id> — возврат Stars-платежа\n"
@@ -209,32 +207,6 @@ async def partner_qr(message: Message, role: str, command: CommandObject) -> Non
         BufferedInputFile(png, filename=f"partner_{pid}.png"),
         caption=f"QR-наклейка для партнёра #{pid}",
     )
-
-
-@router.message(Command("deal"))
-async def set_daily_deal(message: Message, role: str, command: CommandObject) -> None:
-    if role != "admin":
-        return
-    parts = (command.args or "").split()
-    pid = _safe_int(parts[0]) if parts else None
-    try:
-        deal_date = date.fromisoformat(parts[1]) if len(parts) > 1 else None
-    except ValueError:
-        deal_date = None
-    if pid is None or deal_date is None:
-        await message.answer("Формат: /deal <partner_id> <YYYY-MM-DD>, например /deal 3 2026-07-15")
-        return
-    exists = await db.fetchval("SELECT 1 FROM partners WHERE id = $1", pid)
-    if not exists:
-        await message.answer(f"Партнёр #{pid} не найден.")
-        return
-    await db.execute(
-        """INSERT INTO daily_deals (partner_id, deal_date) VALUES ($1, $2)
-           ON CONFLICT (deal_date) DO UPDATE SET partner_id = EXCLUDED.partner_id""",
-        pid,
-        deal_date,
-    )
-    await message.answer(f"✅ Скидка дня на {deal_date:%Y-%m-%d} → партнёр #{pid}")
 
 
 @router.message(Command("subs"))

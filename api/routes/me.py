@@ -71,7 +71,6 @@ async def me(user: dict = Depends(get_user)) -> dict:
         "id": user["id"],
         "full_name": user["full_name"],
         "role": user["role"],
-        "notify_daily": user["notify_daily"],
         "subscription": {
             "active": sub is not None,
             "days_left": days_left,
@@ -111,8 +110,7 @@ async def my_visits(user: dict = Depends(get_user)) -> list[dict]:
     rows = await db.fetch(
         """
         SELECT p.name, r.used_at,
-               coalesce(r.discount,
-                 CASE WHEN r.type = 'premium' THEN p.discount_premium ELSE p.discount_free END) AS discount
+               coalesce(r.discount, p.discount_premium) AS discount
         FROM redemptions r JOIN partners p ON p.id = r.partner_id
         WHERE r.user_id = $1 AND r.status = 'used'
         ORDER BY r.used_at DESC LIMIT 50
@@ -120,16 +118,6 @@ async def my_visits(user: dict = Depends(get_user)) -> list[dict]:
         user["id"],
     )
     return [dict(r) for r in rows]
-
-
-class NotifyBody(BaseModel):
-    enabled: bool
-
-
-@router.post("/me/notify")
-async def set_notify(body: NotifyBody, user: dict = Depends(get_user)) -> dict:
-    await db.execute("UPDATE users SET notify_daily = $2 WHERE id = $1", user["id"], body.enabled)
-    return {"notify_daily": body.enabled}
 
 
 class ActivateBody(BaseModel):

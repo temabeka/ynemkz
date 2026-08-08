@@ -137,80 +137,6 @@ button, input, textarea, select {
   margin: 22px 2px 10px;
 }
 
-/* --- Hero: скидка дня ---------------------------------------- */
-
-.vg-hero {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--vg-radius);
-  background:
-    radial-gradient(120% 160% at 88% -20%, rgba(255, 138, 30, 0.38), transparent 55%),
-    radial-gradient(90% 120% at -10% 110%, rgba(255, 94, 43, 0.22), transparent 60%),
-    var(--vg-coal);
-  color: var(--vg-on-coal);
-  padding: 18px 18px 16px;
-  cursor: pointer;
-  transition: transform 0.15s ease;
-}
-.vg-hero:active { transform: scale(0.98); }
-
-.vg-hero::after {
-  /* угольное зерно */
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px);
-  background-size: 5px 5px;
-  pointer-events: none;
-}
-
-.vg-hero-label {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #ffb36b;
-  border: 1px solid rgba(255, 179, 107, 0.4);
-  border-radius: 99px;
-  padding: 4px 10px;
-  margin-bottom: 12px;
-}
-
-.vg-hero-row {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-}
-.vg-hero-name {
-  font-family: var(--vg-font-display);
-  font-weight: 700;
-  font-size: 22px;
-  line-height: 1.15;
-}
-.vg-hero-pct {
-  font-family: var(--vg-font-display);
-  font-weight: 900;
-  font-size: 40px;
-  line-height: 0.9;
-  white-space: nowrap;
-  background: var(--vg-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-.vg-hero-desc {
-  margin-top: 8px;
-  font-size: 14px;
-  color: var(--vg-on-coal-dim);
-}
-.vg-hero-meta {
-  margin-top: 12px;
-  font-size: 12px;
-  color: var(--vg-on-coal-dim);
-}
-
 /* --- Чипы категорий / секций --------------------------------- */
 
 .vg-chips {
@@ -724,21 +650,6 @@ button, input, textarea, select {
   transform: scale(1.18);
   border-color: var(--vg-amber);
 }
-/* Партнёр дня: расходящийся янтарный пульс */
-@keyframes vg-pin-pulse {
-  0% { transform: scale(0.75); opacity: 0.9; }
-  100% { transform: scale(1.35); opacity: 0; }
-}
-.vg-pin.is-deal::before {
-  content: '';
-  position: absolute;
-  inset: -8px;
-  border-radius: 50%;
-  border: 2.5px solid var(--vg-accent);
-  animation: vg-pin-pulse 1.8s ease-out infinite;
-  pointer-events: none;
-}
-
 /* Нижняя карточка выбранного заведения */
 @keyframes vg-slide-up {
   from { opacity: 0; transform: translateY(26px); }

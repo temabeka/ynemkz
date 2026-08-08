@@ -17,9 +17,10 @@ pip install -r requirements.txt
 python -m bot.main                    # бот (long polling)
 uvicorn api.main:app --reload         # API для Mini App (порт 8000)
 
-# Миграции (обычный psql к Supabase Postgres, без инструмента миграций)
-psql "$DATABASE_URL" -f migrations/001_init.sql
-psql "$DATABASE_URL" -f migrations/002_miniapp.sql
+# Миграции (обычный psql к Supabase Postgres, без инструмента миграций).
+# Применяются по порядку номеров; каждая идемпотентна (повторный прогон не падает).
+psql "$DATABASE_URL" -f migrations/001_init.sql   # ... и далее 002–009
+psql "$DATABASE_URL" -f migrations/seed_demo_partners.sql   # демо-партнёры (опционально)
 
 # Mini App (React + Vite + TS, в miniapp/)
 cd miniapp
@@ -40,11 +41,13 @@ npm run lint       # oxlint
 
 **Авторизация.** Паролей нет, личность = telegram_id. Mini App шлёт заголовок `Authorization: tma <initData>`; `api/auth.py` валидирует HMAC-подпись initData (ключ = HMAC-SHA256("WebAppData", bot_token)), кэширует 5 минут, отклоняет initData старше часа. Роль берётся из `users.role`, но id из `ADMIN_IDS` (env) — всегда admin. Доступ к роутам — через `Depends(require_role("partner", "admin"))`. В боте то же самое делает `bot/middlewares/auth.py` (кладёт роль в контекст, отсекает забаненных).
 
-**Механика активации (вариант C, основная):** QR-наклейка на кассе → deep link `t.me/<bot>/app?startapp=p_<id>` (Mini App) или `t.me/<bot>?start=p_<id>` (фолбэк в боте) → `redemption.issue(auto_use=True)` записывает визит сразу → экран с тикающими часами по серверному времени (TTL 5 мин) + пинг партнёру в бот. Анти-фрод: 1 активация у партнёра в день, без подписки скидка только у партнёра дня (API отвечает 402), незарегистрированным — 403 → онбординг в боте. Фолбэк (вариант A): 6-символьный код с TTL 30 мин, партнёр гасит атомарным UPDATE.
+**Механика активации (вариант C, основная):** QR-наклейка на кассе → deep link `t.me/<bot>/app?startapp=p_<id>` (Mini App) или `t.me/<bot>?start=p_<id>` (фолбэк в боте) → `redemption.issue(auto_use=True)` записывает визит сразу → экран с тикающими часами по серверному времени (TTL 5 мин) + пинг партнёру в бот. Анти-фрод: 1 активация у партнёра в день, без подписки скидки нет (API отвечает 402), незарегистрированным — 403 → онбординг в боте. Вариант D: кассир сканирует персональный QR клиента в кабинете партнёра (`users.qr_token`, генерируется лениво в `GET /api/me`) — визит пишется сразу, клиенту сканировать ничего не нужно. Фолбэк (вариант A): 6-символьный код с TTL 30 мин, гасится атомарным UPDATE (кассир вводит код в Mini App).
+
+**Роли и кассиры.** Роли: buyer / partner / admin (`users.role`). У партнёра-владельца могут быть сотрудники-кассиры (`partner_staff`): владелец приглашает по одноразовой ссылке `t.me/<bot>?start=staff_<token>` (TTL 24 ч) или по @username; кассир получает роль partner, доступ к кабинету своего заведения и пинги об активациях, но без прав владельца (роуты различают по флагу владения в `api/routes/partner.py`). Правки карточки заведения партнёром проходят модерацию админа (`006_partner_edits.sql`).
 
 **Тексты пользователю** — только через i18n-словарь `bot/texts.py`: `t("key", lang, **kwargs)`. Русский заполнен, казахский добавляется ключами в `TEXTS["kk"]`. Не хардкодь строки в хэндлерах.
 
-**Фоновые задачи** — `bot/scheduler.py` (APScheduler в процессе бота): протухание подписок и кодов, утренняя рассылка скидки дня и знака дня.
+**Фоновые задачи** — `bot/scheduler.py` (APScheduler в процессе бота): протухание подписок и кодов, утренняя рассылка знака дня партнёрам.
 
 **Mini App** (`miniapp/`): React 18 (требование `@telegram-apps/telegram-ui`) + `@telegram-apps/sdk-react`, роутинг — HashRouter (SPA на статике), карта — Leaflet/OSM без API-ключей. Все запросы через `src/api.ts`; в dev `VITE_API_URL` пустой — работает vite-прокси на :8000.
 

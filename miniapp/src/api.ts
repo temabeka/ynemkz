@@ -137,7 +137,6 @@ export interface Partner {
   name: string;
   category: string | null;
   address: string | null;
-  discount_free: number;
   discount_premium: number;
   work_hours: string | null;
   logo_url: string | null;
@@ -145,20 +144,10 @@ export interface Partner {
   lng?: number | null;
 }
 
-export interface DailyDeal {
-  id: number;
-  name: string;
-  address: string | null;
-  discount_free: number;
-  logo_url: string | null;
-  description: string | null;
-}
-
 export interface Me {
   id: number;
   full_name: string | null;
   role: 'buyer' | 'partner' | 'admin';
-  notify_daily: boolean;
   subscription: { active: boolean; days_left: number | null; pending: boolean };
   visits: number;
   saved: number;
@@ -170,7 +159,7 @@ export interface Me {
 export interface ScanResult {
   client_name: string | null;
   discount: number;
-  kind: 'daily' | 'premium';
+  kind: 'premium';
   partner_name: string;
 }
 
@@ -183,7 +172,7 @@ export interface Visit {
 export interface Activation {
   partner_name: string;
   discount: number;
-  kind: 'daily' | 'premium';
+  kind: 'premium';
   client_name: string | null;
   daily_sign: string;
   server_time: string;
