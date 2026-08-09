@@ -234,7 +234,7 @@ async def show_catalog(message: Message) -> None:
     lang = settings.default_lang
     rows = await db.fetch(
         """
-        SELECT name, category, address, discount_premium, work_hours
+        SELECT name, category, address, discount_free, discount_premium, work_hours
         FROM partners WHERE is_active AND NOT is_paused
         ORDER BY category NULLS LAST, name
         """
@@ -242,7 +242,7 @@ async def show_catalog(message: Message) -> None:
     if not rows:
         await message.answer(t("catalog_empty", lang))
         return
-    lines: list[str] = ["🏷 <b>Все скидки</b> (по подписке):\n"]
+    lines: list[str] = ["🏷 <b>Все скидки</b>:\n"]
     current_cat = None
     for r in rows:
         cat = r["category"] or "Другое"
@@ -250,7 +250,8 @@ async def show_catalog(message: Message) -> None:
             current_cat = cat
             lines.append(f"\n<b>{cat.capitalize()}</b>")
         hours = f" · {r['work_hours']}" if r["work_hours"] else ""
-        lines.append(f"• {r['name']} — {r['discount_premium']}% · 📍 {r['address'] or '—'}{hours}")
+        free = f" (без подписки {r['discount_free']}%)" if r["discount_free"] else ""
+        lines.append(f"• {r['name']} — {r['discount_premium']}%{free} · 📍 {r['address'] or '—'}{hours}")
     from bot.keyboards import miniapp_kb
     await message.answer("\n".join(lines), reply_markup=miniapp_kb("📱 Каталог и карта в приложении"))
 

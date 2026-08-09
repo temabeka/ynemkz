@@ -148,6 +148,7 @@ export default function Home() {
               <div className="vg-card-name">{p.name}</div>
               <div className="vg-card-meta">
                 {p.address ?? ''}{p.work_hours ? ` · ${p.work_hours}` : ''}
+                {p.discount_free > 0 ? ` · без подписки −${p.discount_free}%` : ''}
               </div>
             </div>
             <div className="vg-pct">−{p.discount_premium}%</div>

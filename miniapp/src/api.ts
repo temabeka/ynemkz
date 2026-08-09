@@ -137,6 +137,8 @@ export interface Partner {
   name: string;
   category: string | null;
   address: string | null;
+  /** Базовая скидка без подписки; 0 — только по подписке */
+  discount_free: number;
   discount_premium: number;
   work_hours: string | null;
   logo_url: string | null;
@@ -159,7 +161,7 @@ export interface Me {
 export interface ScanResult {
   client_name: string | null;
   discount: number;
-  kind: 'premium';
+  kind: 'free' | 'premium';
   partner_name: string;
 }
 
@@ -172,7 +174,7 @@ export interface Visit {
 export interface Activation {
   partner_name: string;
   discount: number;
-  kind: 'premium';
+  kind: 'free' | 'premium';
   client_name: string | null;
   daily_sign: string;
   server_time: string;

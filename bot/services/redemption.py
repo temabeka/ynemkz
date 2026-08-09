@@ -48,7 +48,7 @@ async def issue(
 ) -> dict:
     """Создать redemption и вернуть данные для экрана активации.
 
-    kind: 'premium' (по подписке) — единственный тип после отказа от скидки дня.
+    kind: 'premium' (по подписке) | 'free' (базовая скидка партнёра, без подписки).
     auto_use: вариант C (наклейка) — визит записывается сразу (раздел 3.2),
       кассир ничего не вводит. False — фолбэк A, код гасится кассиром.
     discount: % на момент визита — фиксируется, чтобы история не менялась
@@ -86,8 +86,8 @@ async def issue(
 async def activate(user_id: int, partner_id: int) -> dict:
     """Полный флоу активации (вариант C) — общий для бота и API.
 
-    Правила: скидка discount_premium только по активной подписке; без подписки —
-    NeedSubscription. Визит пишется сразу.
+    Правила: подписчик — discount_premium; без подписки — discount_free,
+    если партнёр её даёт (> 0), иначе NeedSubscription. Визит пишется сразу.
     Возвращает {partner, discount, kind, redemption}. Бросает RedeemError.
     """
     from bot.services import payments  # локальный импорт — разрыв цикла
@@ -99,9 +99,12 @@ async def activate(user_id: int, partner_id: int) -> dict:
         raise RedeemError("Заведение не найдено или временно недоступно.")
 
     sub = await payments.active_subscription(user_id)
-    if not sub:
+    if sub:
+        kind, discount = "premium", partner["discount_premium"]
+    elif partner["discount_free"] > 0:
+        kind, discount = "free", partner["discount_free"]
+    else:
         raise NeedSubscription(partner["name"], partner["discount_premium"])
-    kind, discount = "premium", partner["discount_premium"]
 
     redemption = await issue(user_id, partner_id, kind, auto_use=True, discount=discount)
     return {"partner": dict(partner), "discount": discount, "kind": kind, "redemption": redemption}

@@ -177,6 +177,7 @@ class PartnerPatch(BaseModel):
     category: Category | None = None
     address: str | None = None
     work_hours: str | None = None
+    discount_free: int | None = None
     discount_premium: int | None = None
     avg_check: int | None = None
     lat: float | None = None

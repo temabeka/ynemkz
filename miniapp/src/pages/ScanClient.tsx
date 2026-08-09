@@ -99,7 +99,9 @@ export default function ScanClient() {
   const { data } = state;
   return (
     <div className="vg-act">
-      <div className="vg-act-kind">Скидка по подписке · визит записан</div>
+      <div className="vg-act-kind">
+        {data.kind === 'free' ? 'Скидка без подписки' : 'Скидка по подписке'} · визит записан
+      </div>
       <div className="vg-act-partner">{data.client_name ?? 'Клиент'}</div>
       <div className="vg-act-pct">−{data.discount}%</div>
       <div className="vg-act-client">
