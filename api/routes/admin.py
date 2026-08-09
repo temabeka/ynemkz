@@ -214,15 +214,15 @@ async def partner_patch(partner_id: int, body: PartnerPatch) -> dict:
 @router.get("/partners/{partner_id}/qr")
 async def partner_qr_png(partner_id: int) -> Response:
     """PNG наклейки — Mini App показывает и даёт сохранить."""
-    exists = await db.fetchval("SELECT 1 FROM partners WHERE id = $1", partner_id)
-    if not exists:
+    name = await db.fetchval("SELECT name FROM partners WHERE id = $1", partner_id)
+    if name is None:
         raise HTTPException(404, "partner not found")
     bot = Bot(token=settings.bot_token)
     try:
         username = await _get_bot_username(bot)
     finally:
         await bot.session.close()
-    png = qr.partner_qr(username, partner_id)
+    png = qr.partner_qr(username, partner_id, partner_name=name)
     return Response(content=png, media_type="image/png")
 
 

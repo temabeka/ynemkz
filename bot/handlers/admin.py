@@ -200,12 +200,16 @@ async def partner_qr(message: Message, role: str, command: CommandObject) -> Non
     if pid is None:
         await message.answer("Формат: /qr {partner_id}")
         return
+    name = await db.fetchval("SELECT name FROM partners WHERE id = $1", pid)
+    if name is None:
+        await message.answer(f"Партнёр #{pid} не найден.")
+        return
     me = await message.bot.get_me()
-    png = qr.partner_qr(me.username, pid)
+    png = qr.partner_qr(me.username, pid, partner_name=name)
     from aiogram.types import BufferedInputFile
     await message.answer_photo(
         BufferedInputFile(png, filename=f"partner_{pid}.png"),
-        caption=f"QR-наклейка для партнёра #{pid}",
+        caption=f"QR-наклейка: {name} (#{pid})",
     )
 
 
