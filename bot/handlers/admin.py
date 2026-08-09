@@ -200,16 +200,19 @@ async def partner_qr(message: Message, role: str, command: CommandObject) -> Non
     if pid is None:
         await message.answer("Формат: /qr {partner_id}")
         return
-    name = await db.fetchval("SELECT name FROM partners WHERE id = $1", pid)
-    if name is None:
+    row = await db.fetchrow("SELECT name, logo_url FROM partners WHERE id = $1", pid)
+    if row is None:
         await message.answer(f"Партнёр #{pid} не найден.")
         return
     me = await message.bot.get_me()
-    png = qr.partner_qr(me.username, pid, partner_name=name)
+    logo = await asyncio.to_thread(qr.fetch_logo, row["logo_url"])
+    png = await asyncio.to_thread(
+        qr.partner_qr, me.username, pid, partner_name=row["name"], logo_bytes=logo
+    )
     from aiogram.types import BufferedInputFile
     await message.answer_photo(
         BufferedInputFile(png, filename=f"partner_{pid}.png"),
-        caption=f"QR-наклейка: {name} (#{pid})",
+        caption=f"QR-наклейка: {row['name']} (#{pid})",
     )
 
 

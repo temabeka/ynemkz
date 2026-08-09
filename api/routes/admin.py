@@ -215,15 +215,18 @@ async def partner_patch(partner_id: int, body: PartnerPatch) -> dict:
 @router.get("/partners/{partner_id}/qr")
 async def partner_qr_png(partner_id: int) -> Response:
     """PNG наклейки — Mini App показывает и даёт сохранить."""
-    name = await db.fetchval("SELECT name FROM partners WHERE id = $1", partner_id)
-    if name is None:
+    row = await db.fetchrow("SELECT name, logo_url FROM partners WHERE id = $1", partner_id)
+    if row is None:
         raise HTTPException(404, "partner not found")
     bot = Bot(token=settings.bot_token)
     try:
         username = await _get_bot_username(bot)
     finally:
         await bot.session.close()
-    png = qr.partner_qr(username, partner_id, partner_name=name)
+    logo = await asyncio.to_thread(qr.fetch_logo, row["logo_url"])
+    png = await asyncio.to_thread(
+        qr.partner_qr, username, partner_id, partner_name=row["name"], logo_bytes=logo
+    )
     return Response(content=png, media_type="image/png")
 
 

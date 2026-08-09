@@ -40,7 +40,7 @@ def gen_client_token() -> str:
 
 
 def _font(size: int, bold: bool = True) -> ImageFont.FreeTypeFont:
-    name = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
+    name = "Montserrat-Bold.ttf" if bold else "Montserrat-Medium.ttf"
     return ImageFont.truetype(str(_ASSETS / name), size)
 
 
@@ -53,16 +53,19 @@ def _center_text(draw: ImageDraw.ImageDraw, y: int, text: str, font: ImageFont.F
 
 
 def partner_qr(bot_username: str, partner_id: int, app_name: str = "app",
-               partner_name: str | None = None) -> bytes:
-    """PNG наклейки на кассу: фирменный жёлтый фон, логотип, QR, инструкция.
+               partner_name: str | None = None, logo_bytes: bytes | None = None) -> bytes:
+    """PNG наклейки на кассу: фирменный жёлтый фон, QR с логотипом заведения, инструкция.
 
     QR ведёт на Direct Link Mini App: t.me/<bot>/<app>?startapp=p_<id> —
     экран активации открывается сразу; незарегистрированных Mini App отправит
     в бот (фолбэк ?start=p_<id>). Печать ~9×12 см при 300 dpi.
+    logo_bytes — логотип заведения для центра QR; коррекция H (30%) позволяет
+    закрыть центр без потери читаемости. Сеть здесь не трогаем — байты качает
+    вызывающий (хэндлеры асинхронные, а генерация выполняется в thread pool).
     """
     link = f"https://t.me/{bot_username}/{app_name}?startapp=p_{partner_id}"
 
-    qr_code = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_Q, border=0, box_size=22)
+    qr_code = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_H, border=0, box_size=22)
     qr_code.add_data(link)
     qr_img = qr_code.make_image(
         image_factory=StyledPilImage,
@@ -70,6 +73,31 @@ def partner_qr(bot_username: str, partner_id: int, app_name: str = "app",
         fill_color=_INK,
         back_color=(255, 255, 255),
     ).convert("RGB")
+
+    # Логотип заведения в центре: белая скруглённая подложка + скруглённая картинка
+    if logo_bytes:
+        try:
+            logo = Image.open(io.BytesIO(logo_bytes)).convert("RGB")
+        except Exception:
+            logo = None
+        if logo is not None:
+            side = min(logo.size)
+            logo = logo.crop(((logo.width - side) // 2, (logo.height - side) // 2,
+                              (logo.width + side) // 2, (logo.height + side) // 2))
+            hole = int(qr_img.width * 0.30)          # белая подложка ≤ 30% — предел коррекции H
+            inner = int(hole * 0.86)
+            logo = logo.resize((inner, inner), Image.LANCZOS)
+
+            pad_box = Image.new("RGB", (hole, hole), (255, 255, 255))
+            mask_pad = Image.new("L", (hole, hole), 0)
+            ImageDraw.Draw(mask_pad).rounded_rectangle((0, 0, hole, hole), radius=hole // 5, fill=255)
+            mask_logo = Image.new("L", (inner, inner), 0)
+            ImageDraw.Draw(mask_logo).rounded_rectangle((0, 0, inner, inner), radius=inner // 5, fill=255)
+
+            cx = (qr_img.width - hole) // 2
+            qr_img.paste(pad_box, (cx, cx), mask_pad)
+            off = cx + (hole - inner) // 2
+            qr_img.paste(logo, (off, off), mask_logo)
 
     W, H = 1080, 1440
     sticker = Image.new("RGB", (W, H), _BRAND_YELLOW)
@@ -101,6 +129,21 @@ def partner_qr(bot_username: str, partner_id: int, app_name: str = "app",
     buf = io.BytesIO()
     sticker.save(buf, format="PNG")
     return buf.getvalue()
+
+
+def fetch_logo(url: str | None, timeout: int = 10) -> bytes | None:
+    """Скачивает логотип для центра QR. Синхронная — звать через asyncio.to_thread.
+
+    Ошибки глотаем: наклейка без логотипа лучше, чем ошибка вместо наклейки.
+    """
+    if not url:
+        return None
+    import urllib.request
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as resp:  # noqa: S310 — url из нашей БД
+            return resp.read()
+    except Exception:
+        return None
 
 
 def daily_sign(day: date | None = None) -> str:
