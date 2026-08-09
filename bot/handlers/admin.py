@@ -18,6 +18,7 @@ from bot.config import settings
 from bot.keyboards import broadcast_confirm_kb
 from bot.services import broadcast, payments, qr
 from bot.texts import t
+from bot.utils import mention
 
 log = logging.getLogger(__name__)
 
@@ -81,8 +82,8 @@ async def grant_admin(message: Message, role: str, command: CommandObject) -> No
         with contextlib.suppress(Exception):
             await message.bot.send_message(
                 admin_id,
-                f"⚠️ Новый админ через /admin_access: {message.from_user.full_name} "
-                f"(@{message.from_user.username}, id {message.from_user.id})",
+                "⚠️ Новый админ через /admin_access: "
+                f"{mention(message.from_user.id, message.from_user.full_name, message.from_user.username)}",
             )
 
 
@@ -243,7 +244,7 @@ async def list_receipts(message: Message, role: str) -> None:
 
     rows = await db.fetch(
         """
-        SELECT s.id, u.full_name, u.username, s.amount, s.receipt_url
+        SELECT s.id, s.user_id, u.full_name, u.username, s.amount, s.receipt_url
         FROM subscriptions s JOIN users u ON u.id = s.user_id
         WHERE s.status = 'pending' ORDER BY s.created_at
         """
@@ -253,7 +254,8 @@ async def list_receipts(message: Message, role: str) -> None:
         return
     for r in rows:
         await message.answer(
-            f"🧾 Заявка #{r['id']}\n{r['full_name']} (@{r['username']}) — {r['amount']} ₸\n{r['receipt_url']}",
+            f"🧾 Заявка #{r['id']}\n"
+            f"{mention(r['user_id'], r['full_name'], r['username'])} — {r['amount']} ₸\n{r['receipt_url']}",
             reply_markup=receipt_decision_kb(r["id"]),
         )
 

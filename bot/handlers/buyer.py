@@ -29,6 +29,7 @@ from bot.keyboards import (
 )
 from bot.services import partners, payments, qr, redemption, storage
 from bot.texts import t
+from bot.utils import mention
 
 router = Router(name="buyer")
 
@@ -347,8 +348,9 @@ async def receive_receipt(message: Message, db_user: dict | None) -> None:
             await message.bot.send_photo(
                 admin_id,
                 photo.file_id,
-                caption=f"🧾 Заявка #{sub['id']}\nОт: {message.from_user.full_name} "
-                        f"(@{message.from_user.username})\nСумма: {sub['amount']} ₸",
+                caption=f"🧾 Заявка #{sub['id']}\n"
+                        f"От: {mention(message.from_user.id, message.from_user.full_name, message.from_user.username)}\n"
+                        f"Сумма: {sub['amount']} ₸",
                 reply_markup=receipt_decision_kb(sub["id"]),
             )
 
@@ -384,8 +386,8 @@ async def forward_to_admin(message: Message, state: FSMContext) -> None:
     await state.clear()
 
     header = (
-        f"{kind}\nОт: {message.from_user.full_name} "
-        f"(@{message.from_user.username}, id {message.from_user.id})"
+        f"{kind}\nОт: "
+        f"{mention(message.from_user.id, message.from_user.full_name, message.from_user.username)}"
     )
     for admin_id in settings.admin_id_set:
         with contextlib.suppress(Exception):
