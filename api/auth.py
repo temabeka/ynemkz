@@ -19,7 +19,10 @@ from bot import db
 from bot.config import settings
 
 AUTH_TTL = 300  # секунд
-MAX_AGE = 3600  # initData старше часа не принимаем
+# Telegram подписывает initData при открытии Mini App и не обновляет, пока
+# webview жив: при лимите в час у долго открытого приложения все запросы
+# падали в 401. 12 часов — баланс между удобством и окном для replay-атаки.
+MAX_AGE = 12 * 3600
 
 _cache: dict[str, tuple[float, dict]] = {}  # initData → (ts, user)
 
