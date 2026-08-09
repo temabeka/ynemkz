@@ -218,6 +218,28 @@ button, input, textarea, select {
 }
 .vg-chips::-webkit-scrollbar { display: none; }
 
+/* Поиск по каталогу: стикерное поле вместо tgui Input (у того обёртка
+   со своим фоном и прямыми углами выбивалась из темы) */
+.vg-search {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--yn-card);
+  color: var(--yn-text);
+  border: 2px solid var(--yn-line-soft);
+  border-radius: 16px;
+  padding: 13px 16px;
+  font: 600 15px var(--tgui--font-family);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.vg-search::placeholder { color: var(--yn-hint); font-weight: 500; }
+.vg-search:focus {
+  border-color: var(--yn-line);
+  box-shadow: 3px 3px 0 var(--yn-shadow);
+}
+
 .vg-chip {
   border: 2px solid var(--yn-line-soft);
   background: var(--yn-card);

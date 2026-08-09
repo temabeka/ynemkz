@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { openTelegramLink } from '@telegram-apps/sdk-react';
-import { Button, Input } from '@telegram-apps/telegram-ui';
+import { Button } from '@telegram-apps/telegram-ui';
 import { categoryRank, type Me, type Partner } from './../api';
 import { ErrorState, useCachedApi } from './../hooks';
 import { QrIcon } from './../icons';
@@ -130,7 +130,7 @@ export default function Home() {
 
       <div className="vg-h">Каталог</div>
 
-      <Input placeholder="Поиск заведения" value={search}
+      <input className="vg-search" type="search" placeholder="Поиск заведения" value={search}
              onChange={(e) => setSearch(e.target.value)} />
 
       <div className="vg-chips" style={{ marginTop: 10 }}>
