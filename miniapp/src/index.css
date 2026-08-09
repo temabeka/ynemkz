@@ -1,30 +1,84 @@
 /* ============================================================
-   Выгодный Город — дизайн-система «Энергия города»
-   Экибастуз — город энергетиков: янтарный свет на графите.
-   Тема (фон/текст) адаптивная из Telegram, бренд-карточки —
-   самодостаточно тёмные, работают в обеих темах.
+   Ynem — фирменный «стикерный» стиль лендинга (site/index.html).
+   Кислотно-жёлтый #f5ec00 + чернильный #0c0c0c + бумажный #fffef2,
+   жёсткие обводки 3px, офсетные тени 4px 4px 0, Unbounded/Montserrat.
+
+   Тема: класс vg-light/vg-dark на <html> ставит main.tsx по теме
+   Telegram. Светлая — жёлтый фон страниц и бумажные карточки;
+   тёмная — фон Telegram остаётся тёмным, жёлтый только акцентами
+   (обводки, бейджи, кнопки). Фолбэк до JS — prefers-color-scheme.
    ============================================================ */
 
 :root {
-  --vg-accent: #ff8a1e;
-  --vg-accent-hot: #ff5e2b;
-  --vg-amber: #ffc069;
-  --vg-grad: linear-gradient(118deg, #ff5e2b 0%, #ff8a1e 48%, #ffc069 100%);
+  /* Палитра бренда */
+  --yn-yellow: #f5ec00;
+  --yn-ink: #0c0c0c;
+  --yn-paper: #fffef2;
+  --yn-accent: #ff5e2b;
+
+  /* Самодостаточно тёмные экраны (активация, QR) — не зависят от темы */
   --vg-coal: #16181d;
   --vg-coal-2: #1f232b;
-  --vg-on-coal: #f5f1ea;
-  --vg-on-coal-dim: rgba(245, 241, 234, 0.62);
-  --vg-radius: 18px;
-  --vg-font-display: 'Unbounded', 'Golos Text', sans-serif;
-  --tgui--font-family: 'Golos Text', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --vg-on-coal: #fffef2;
+  --vg-on-coal-dim: rgba(255, 254, 242, 0.62);
+
+  --vg-radius: 20px;
+  --vg-font-display: 'Unbounded', 'Montserrat', sans-serif;
+  --tgui--font-family: 'Montserrat', -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Токены темы: светлая по умолчанию */
+  --yn-bg: var(--yn-yellow);
+  --yn-card: var(--yn-paper);
+  --yn-text: var(--yn-ink);
+  --yn-hint: rgba(12, 12, 12, 0.58);
+  --yn-line: var(--yn-ink);       /* жёсткая обводка «стикеров» */
+  --yn-line-soft: var(--yn-ink);  /* обводка рядовых карточек/чипов */
+  --yn-shadow: rgba(12, 12, 12, 0.24); /* офсетные тени 4px 4px 0 */
+  --yn-fill: var(--yn-ink);       /* заливка активных элементов */
+  --yn-on-fill: var(--yn-yellow); /* текст на заливке */
+  --yn-dots: rgba(12, 12, 12, 0.1); /* точки-модули QR в фоне */
+
+  /* Акцент в инлайн-стилях страниц: светлая — оранжевый, тёмная — жёлтый */
+  --vg-accent: var(--yn-accent);
+}
+
+/* Тёмная тема: тёмный фон Telegram, жёлтый — акцентами */
+:root.vg-dark {
+  --yn-bg: var(--tg-theme-secondary-bg-color, var(--tg-theme-bg-color, #121316));
+  --yn-card: var(--tg-theme-section-bg-color, var(--tg-theme-bg-color, #1c1e24));
+  --yn-text: var(--tg-theme-text-color, #fffef2);
+  --yn-hint: var(--tg-theme-hint-color, rgba(255, 254, 242, 0.55));
+  --yn-line: rgba(245, 236, 0, 0.8);
+  --yn-line-soft: rgba(245, 236, 0, 0.28);
+  --yn-shadow: rgba(0, 0, 0, 0.5);
+  --yn-fill: var(--yn-yellow);
+  --yn-on-fill: var(--yn-ink);
+  --yn-dots: rgba(245, 236, 0, 0.08);
+  --vg-accent: var(--yn-yellow);
+}
+
+/* До инициализации JS (класс ещё не выставлен) — по системной теме,
+   чтобы тёмный клиент не ловил жёлтую вспышку первого кадра */
+@media (prefers-color-scheme: dark) {
+  :root:not(.vg-light) {
+    --yn-bg: var(--tg-theme-secondary-bg-color, var(--tg-theme-bg-color, #121316));
+    --yn-card: var(--tg-theme-section-bg-color, var(--tg-theme-bg-color, #1c1e24));
+    --yn-text: var(--tg-theme-text-color, #fffef2);
+    --yn-hint: var(--tg-theme-hint-color, rgba(255, 254, 242, 0.55));
+    --yn-line: rgba(245, 236, 0, 0.8);
+    --yn-line-soft: rgba(245, 236, 0, 0.28);
+    --yn-shadow: rgba(0, 0, 0, 0.5);
+    --yn-fill: var(--yn-yellow);
+    --yn-on-fill: var(--yn-ink);
+    --yn-dots: rgba(245, 236, 0, 0.08);
+    --vg-accent: var(--yn-yellow);
+  }
 }
 
 body {
   margin: 0;
-  /* --tgui--* живут внутри AppRoot и до body не достают — берём тему Telegram,
-     привязанную к :root через themeParams.bindCssVars() (см. main.tsx) */
-  background: var(--tg-theme-secondary-bg-color, var(--tg-theme-bg-color, #fff));
-  color: var(--tg-theme-text-color, #000);
+  background: var(--yn-bg);
+  color: var(--yn-text);
   font-family: var(--tgui--font-family);
   -webkit-font-smoothing: antialiased;
 }
@@ -33,12 +87,17 @@ button, input, textarea, select {
   font-family: var(--tgui--font-family);
 }
 
-/* Брендовые CTA: filled-кнопки и активные состояния tgui — янтарный Ynem.
+/* Брендовые CTA: filled-кнопки tgui в стиле лендинга — чернильная кнопка
+   с жёлтым текстом в светлой теме, жёлтая с чернильным в тёмной.
    Токены переопределяем на #root (специфичность id > классов темы tgui). */
 #root {
-  --tgui--button_color: var(--vg-accent);
-  --tgui--button_text_color: #ffffff;
+  --tgui--button_color: var(--yn-fill);
+  --tgui--button_text_color: var(--yn-on-fill);
   --tgui--link_color: var(--vg-accent);
+}
+/* Секции tgui (история визитов, списки) — бумажные карточки в светлой */
+:root.vg-light #root {
+  --tgui--section_bg_color: var(--yn-card);
 }
 
 .vg-display {
@@ -75,45 +134,56 @@ button, input, textarea, select {
 .vg-tabbar {
   padding-bottom:
     var(--tg-viewport-content-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) !important;
+  /* фирменная жёсткая линия — как бордюр шапки лендинга */
+  border-top: 3px solid var(--yn-line);
 }
 
 .vg-brand {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 6px 2px 14px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 2px 14px;
 }
 .vg-brand-name {
   font-family: var(--vg-font-display);
   font-weight: 900;
-  font-size: 17px;
-  background: var(--vg-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: var(--yn-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+/* Тег-наклейка рядом с именем — как .tag в заголовках лендинга */
 .vg-brand-city {
-  font-size: 12px;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--tgui--hint_color, #8a8a8e);
+  color: var(--yn-text);
+  background: var(--yn-card);
+  border: 2px solid var(--yn-line);
+  border-radius: 99px;
+  padding: 3px 10px;
 }
 
 /* Кнопка «Мой QR» в шапке главной: под рукой у кассы */
 .vg-qr-fab {
   margin-left: auto;
   align-self: center;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  border-radius: 12px;
-  background: var(--vg-grad);
-  color: #fff;
+  border: 3px solid var(--yn-line);
+  border-radius: 13px;
+  background: var(--yn-fill);
+  color: var(--yn-on-fill);
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(255, 94, 43, 0.35);
+  box-shadow: 3px 3px 0 var(--yn-shadow);
   transition: transform 0.12s ease;
 }
 .vg-qr-fab:active { transform: scale(0.92); }
@@ -130,14 +200,14 @@ button, input, textarea, select {
 .vg-h {
   font-family: var(--vg-font-display);
   font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--tgui--hint_color, #8a8a8e);
+  color: var(--yn-text);
   margin: 22px 2px 10px;
 }
 
-/* --- Чипы категорий / секций --------------------------------- */
+/* --- Чипы категорий / секций: таблетки с обводкой -------------- */
 
 .vg-chips {
   display: flex;
@@ -149,38 +219,39 @@ button, input, textarea, select {
 .vg-chips::-webkit-scrollbar { display: none; }
 
 .vg-chip {
-  border: 1px solid var(--tgui--outline, rgba(128, 128, 128, 0.25));
-  background: transparent;
-  color: var(--tgui--text_color, #000);
+  border: 2px solid var(--yn-line-soft);
+  background: var(--yn-card);
+  color: var(--yn-text);
   border-radius: 99px;
   padding: 7px 14px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13.5px;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
-  transition: transform 0.12s ease, color 0.18s ease, border-color 0.18s ease;
+  transition: transform 0.12s ease, color 0.18s ease,
+    border-color 0.18s ease, background-color 0.18s ease;
 }
 .vg-chip:active { transform: scale(0.94); }
 .vg-chip.is-on {
-  border-color: transparent;
-  background: var(--vg-grad);
-  color: #fff;
-  font-weight: 600;
+  background: var(--yn-fill);
+  color: var(--yn-on-fill);
+  border-color: var(--yn-line-soft);
+  font-weight: 700;
+  box-shadow: 2px 2px 0 var(--yn-shadow);
 }
 
-/* --- Карточка партнёра ---------------------------------------- */
+/* --- Карточка партнёра: стикер с жёсткой обводкой -------------- */
 
 .vg-card {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   border-radius: var(--vg-radius);
-  background: var(--tgui--section_bg_color, var(--tgui--secondary_bg_color, #f4f4f7));
-  /* тонкая граница — отделяет карточку от фона в светлой теме */
-  border: 1px solid var(--tgui--outline, rgba(0, 0, 0, 0.06));
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
+  background: var(--yn-card);
+  border: 3px solid var(--yn-line-soft);
+  box-shadow: 3px 3px 0 var(--yn-shadow);
   cursor: pointer;
   transition: transform 0.13s ease;
 }
@@ -193,7 +264,8 @@ button, input, textarea, select {
   flex-shrink: 0;
   object-fit: cover;
   background: var(--vg-coal-2);
-  color: var(--vg-amber);
+  color: var(--yn-yellow);
+  border: 2px solid var(--yn-line-soft);
   font-family: var(--vg-font-display);
   font-weight: 700;
   font-size: 18px;
@@ -204,14 +276,15 @@ button, input, textarea, select {
 
 .vg-card-body { flex: 1; min-width: 0; }
 .vg-card-name {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 15px;
-  color: var(--tgui--text_color, #000);
+  color: var(--yn-text);
 }
 .vg-card-meta {
   font-size: 12.5px;
   margin-top: 2px;
-  color: var(--tgui--hint_color, #8a8a8e);
+  color: var(--yn-hint);
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -225,11 +298,24 @@ button, input, textarea, select {
   white-space: nowrap;
 }
 
+/* Примечание к скидке (например, «при оплате наличными») — как .note лендинга */
+.vg-deal {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--vg-accent);
+  border: 2px dashed var(--vg-accent);
+  background: var(--yn-card);
+}
+
 .vg-empty {
   text-align: center;
   padding: 36px 16px;
-  color: var(--tgui--hint_color, #8a8a8e);
+  color: var(--yn-hint);
   font-size: 14px;
+  font-weight: 500;
 }
 
 .vg-loader {
@@ -307,6 +393,8 @@ button, input, textarea, select {
 }
 
 /* --- Экран активации ------------------------------------------ */
+/* Самодостаточно угольный в обеих темах: кассир видит одно и то же.
+   Акценты — кислотно-жёлтые, процент — Unbounded 900. */
 
 @keyframes vg-ring-spin {
   to { transform: rotate(360deg); }
@@ -331,7 +419,7 @@ button, input, textarea, select {
   text-align: center;
   padding: 24px;
   background:
-    radial-gradient(130% 90% at 50% -12%, rgba(255, 138, 30, 0.3), transparent 58%),
+    radial-gradient(130% 90% at 50% -12%, rgba(245, 236, 0, 0.17), transparent 58%),
     var(--vg-coal);
   color: var(--vg-on-coal);
 }
@@ -372,10 +460,7 @@ button, input, textarea, select {
   font-size: 74px;
   line-height: 1;
   margin: 4px 0 2px;
-  background: var(--vg-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--yn-yellow);
   /* Главный акцент влетает с перелётом — перебивает каскадный vg-rise */
   animation: vg-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.16s backwards;
 }
@@ -385,7 +470,7 @@ button, input, textarea, select {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #ffb36b;
+  color: var(--yn-yellow);
 }
 
 .vg-act-client {
@@ -409,7 +494,7 @@ button, input, textarea, select {
   inset: 0;
   border-radius: 50%;
   padding: 3px;
-  background: conic-gradient(from 0deg, #ff5e2b, #ffc069, transparent 62%, #ff5e2b);
+  background: conic-gradient(from 0deg, #f5ec00, #ff5e2b, transparent 62%, #f5ec00);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -444,7 +529,7 @@ button, input, textarea, select {
   background: none;
   border: none;
   font-size: 13px;
-  color: #ffb36b;
+  color: var(--yn-yellow);
   text-decoration: underline;
   cursor: pointer;
 }
@@ -467,8 +552,8 @@ button, input, textarea, select {
 }
 .vg-qr.is-premium {
   background:
-    radial-gradient(130% 90% at 50% -12%, rgba(255, 138, 30, 0.32), transparent 58%),
-    radial-gradient(100% 70% at 50% 118%, rgba(255, 94, 43, 0.2), transparent 60%),
+    radial-gradient(130% 90% at 50% -12%, rgba(245, 236, 0, 0.16), transparent 58%),
+    radial-gradient(100% 70% at 50% 118%, rgba(255, 94, 43, 0.18), transparent 60%),
     var(--vg-coal);
 }
 
@@ -488,13 +573,13 @@ button, input, textarea, select {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--vg-on-coal-dim);
-  border: 1px solid rgba(245, 241, 234, 0.25);
+  border: 2px solid rgba(255, 254, 242, 0.25);
   border-radius: 99px;
   padding: 4px 12px;
 }
 .vg-qr.is-premium .vg-qr-badge {
-  color: #ffb36b;
-  border-color: rgba(255, 179, 107, 0.4);
+  color: var(--yn-yellow);
+  border-color: rgba(245, 236, 0, 0.45);
 }
 
 .vg-qr-name {
@@ -503,16 +588,16 @@ button, input, textarea, select {
   margin-bottom: 8px;
 }
 
-/* Градиентная рамка вокруг белой карточки с QR: у подписчиков — бренд,
-   без подписки — едва заметная серая */
+/* Рамка вокруг белой карточки с QR: у подписчиков — кислотно-жёлтый
+   стикер, без подписки — едва заметная серая */
 .vg-qr-frame {
   padding: 3px;
   border-radius: 31px;
-  background: rgba(245, 241, 234, 0.16);
+  background: rgba(255, 254, 242, 0.16);
 }
 .vg-qr.is-premium .vg-qr-frame {
-  background: var(--vg-grad);
-  box-shadow: 0 14px 44px rgba(255, 94, 43, 0.28);
+  background: var(--yn-yellow);
+  box-shadow: 0 14px 44px rgba(245, 236, 0, 0.22);
 }
 
 .vg-qr-card {
@@ -532,14 +617,18 @@ button, input, textarea, select {
 
 /* --- Профиль --------------------------------------------------- */
 
+/* «Вы сэкономили» — чернильный стикер с жёлтой суммой и точками-модулями QR,
+   как секция партнёров лендинга (ink + yellow) */
 .vg-save-card {
   position: relative;
   overflow: hidden;
   border-radius: var(--vg-radius);
-  background:
-    radial-gradient(110% 150% at 100% 0%, rgba(255, 138, 30, 0.34), transparent 55%),
-    var(--vg-coal);
-  color: var(--vg-on-coal);
+  background-color: var(--yn-ink);
+  background-image: radial-gradient(rgba(245, 236, 0, 0.14) 1.6px, transparent 1.6px);
+  background-size: 22px 22px;
+  border: 3px solid var(--yn-line);
+  box-shadow: 4px 4px 0 var(--yn-shadow);
+  color: var(--yn-paper);
   padding: 20px 18px;
 }
 .vg-save-label {
@@ -547,7 +636,7 @@ button, input, textarea, select {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #ffb36b;
+  color: var(--yn-yellow);
 }
 .vg-save-sum {
   font-family: var(--vg-font-display);
@@ -555,6 +644,7 @@ button, input, textarea, select {
   font-size: 42px;
   line-height: 1.1;
   margin-top: 6px;
+  color: var(--yn-yellow);
 }
 .vg-save-sum small {
   font-size: 22px;
@@ -563,19 +653,19 @@ button, input, textarea, select {
 .vg-save-meta {
   margin-top: 6px;
   font-size: 13px;
-  color: var(--vg-on-coal-dim);
+  color: rgba(255, 254, 242, 0.65);
 }
 
 .vg-progress {
   height: 8px;
   border-radius: 99px;
-  background: var(--tgui--secondary_fill, rgba(128, 128, 128, 0.18));
+  background: rgba(128, 128, 128, 0.25);
   overflow: hidden;
 }
 .vg-progress > div {
   height: 100%;
   border-radius: 99px;
-  background: var(--vg-grad);
+  background: var(--yn-fill);
   transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -597,7 +687,7 @@ button, input, textarea, select {
   filter: brightness(2.2) saturate(1.15);
 }
 
-/* Пины партнёров: логотип в круге + бейдж скидки */
+/* Пины партнёров: логотип в круге с жёлтым ободком + стикер-бейдж скидки */
 .vg-pin-wrap {
   background: none;
   border: none;
@@ -608,12 +698,12 @@ button, input, textarea, select {
   height: 46px;
   border-radius: 50%;
   background: var(--vg-coal);
-  border: 2.5px solid #fff;
+  border: 2.5px solid var(--yn-yellow);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--vg-amber);
+  color: var(--yn-yellow);
   font-family: var(--vg-font-display);
   font-weight: 700;
   font-size: 18px;
@@ -636,8 +726,9 @@ button, input, textarea, select {
   bottom: -8px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--vg-grad);
-  color: #fff;
+  background: var(--yn-yellow);
+  color: var(--yn-ink);
+  border: 1.5px solid var(--yn-ink);
   font-family: var(--vg-font-display);
   font-size: 10px;
   font-weight: 700;
@@ -648,7 +739,7 @@ button, input, textarea, select {
 }
 .vg-pin.is-on {
   transform: scale(1.18);
-  border-color: var(--vg-amber);
+  border-color: var(--yn-paper);
 }
 /* Нижняя карточка выбранного заведения */
 @keyframes vg-slide-up {
@@ -666,10 +757,10 @@ button, input, textarea, select {
   gap: 12px;
   padding: 14px;
   border-radius: var(--vg-radius);
-  background: var(--tgui--bg_color, #fff);
-  color: var(--tgui--text_color, #000);
-  border: 1px solid var(--tgui--outline, rgba(0, 0, 0, 0.08));
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
+  background: var(--yn-card);
+  color: var(--yn-text);
+  border: 3px solid var(--yn-line);
+  box-shadow: 5px 5px 0 var(--yn-shadow);
   animation: vg-slide-up 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .vg-map-card .vg-card-meta { white-space: normal; }
@@ -684,7 +775,7 @@ button, input, textarea, select {
   padding: 2px 4px;
   font-size: 15px;
   line-height: 1;
-  color: var(--tgui--hint_color, #8a8a8e);
+  color: var(--yn-hint);
   cursor: pointer;
 }
 
@@ -702,47 +793,49 @@ button, input, textarea, select {
   padding: 9px 16px;
   border-radius: 99px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
-  background: var(--tgui--bg_color, #fff);
-  color: var(--tgui--text_color, #000);
-  border: 1px solid var(--tgui--outline, rgba(0, 0, 0, 0.08));
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+  background: var(--yn-card);
+  color: var(--yn-text);
+  border: 2px solid var(--yn-line-soft);
+  box-shadow: 3px 3px 0 var(--yn-shadow);
 }
 .vg-map-note button {
   border: none;
   background: none;
   padding: 0;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--vg-accent);
   cursor: pointer;
 }
 
 /* Ссылка «Подробнее» в попапе Leaflet — акцент вместо дефолтного синего */
 .leaflet-popup-content a {
-  color: var(--vg-accent);
+  color: var(--yn-accent);
   font-weight: 600;
   cursor: pointer;
 }
 
+/* «Рядом со мной» — кнопка в пластике лендинга (.btn) */
 .vg-locate {
   position: absolute;
   bottom: 18px;
   right: 14px;
   z-index: 1000;
-  border: none;
+  border: 3px solid var(--yn-ink);
   border-radius: 99px;
   padding: 11px 18px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-  background: var(--vg-grad);
-  box-shadow: 0 6px 18px rgba(255, 94, 43, 0.4);
+  font-family: var(--vg-font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--yn-on-fill);
+  background: var(--yn-fill);
+  box-shadow: 4px 4px 0 rgba(12, 12, 12, 0.3);
   cursor: pointer;
-  transition: transform 0.12s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-.vg-locate:active { transform: scale(0.95); }
+.vg-locate:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(12, 12, 12, 0.3); }
 
 /* --- Админка: отступ под таббар с учётом safe-area --------------- */
 
@@ -761,19 +854,21 @@ button, input, textarea, select {
 .vg-stat {
   border-radius: var(--vg-radius);
   padding: 14px;
-  background: var(--tgui--section_bg_color, var(--tgui--secondary_bg_color, #f4f4f7));
-  border: 1px solid var(--tgui--outline, rgba(0, 0, 0, 0.06));
+  background: var(--yn-card);
+  border: 3px solid var(--yn-line-soft);
+  box-shadow: 3px 3px 0 var(--yn-shadow);
 }
 .vg-stat-num {
   font-family: var(--vg-font-display);
   font-weight: 700;
   font-size: 26px;
-  color: var(--tgui--text_color, #000);
+  color: var(--yn-text);
 }
 .vg-stat-cap {
   margin-top: 2px;
   font-size: 12px;
-  color: var(--tgui--hint_color, #8a8a8e);
+  font-weight: 500;
+  color: var(--yn-hint);
 }
 
 .vg-bars {
@@ -783,38 +878,81 @@ button, input, textarea, select {
   height: 88px;
   padding: 14px;
   border-radius: var(--vg-radius);
-  background: var(--tgui--section_bg_color, var(--tgui--secondary_bg_color, #f4f4f7));
-  border: 1px solid var(--tgui--outline, rgba(0, 0, 0, 0.06));
+  background: var(--yn-card);
+  border: 3px solid var(--yn-line-soft);
+  box-shadow: 3px 3px 0 var(--yn-shadow);
 }
 .vg-bars > div {
   flex: 1;
   min-height: 3px;
   border-radius: 3px 3px 1px 1px;
-  background: var(--vg-grad);
-  opacity: 0.85;
+  background: var(--yn-fill);
+  opacity: 0.9;
 }
 
 /* --- Лендинг клуба (главная: гость и без подписки) -------------- */
+/* Hero-стикер: бумажная карточка, точки-модули QR, бейдж-наклейка со скидкой */
 
 .vg-land {
+  position: relative;
+  overflow: hidden;
   margin-top: 14px;
   padding: 18px 16px 16px;
-  border-radius: var(--vg-radius);
-  background: var(--tgui--section_bg_color, var(--tgui--secondary_bg_color, #f4f4f7));
-  border: 1px solid var(--tgui--outline, rgba(0, 0, 0, 0.06));
+  border-radius: 22px;
+  background: var(--yn-card);
+  border: 3px solid var(--yn-line);
+  box-shadow: 5px 5px 0 var(--yn-shadow);
 }
+.vg-land::before {
+  /* фон с точками-модулями QR — как в hero лендинга, затухает книзу */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--yn-dots) 2px, transparent 2px);
+  background-size: 24px 24px;
+  -webkit-mask-image: linear-gradient(#000, transparent 72%);
+  mask-image: linear-gradient(#000, transparent 72%);
+  pointer-events: none;
+}
+.vg-land > * { position: relative; }
 .vg-land-title {
   font-family: var(--vg-font-display);
-  font-weight: 800;
+  font-weight: 900;
   font-size: 19px;
-  line-height: 1.25;
-  color: var(--tgui--text_color, #000);
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: var(--yn-text);
+  padding-right: 78px; /* место под бейдж-наклейку */
 }
 .vg-land-sub {
   margin-top: 8px;
   font-size: 13.5px;
+  font-weight: 500;
   line-height: 1.45;
-  color: var(--tgui--hint_color, #8a8a8e);
+  color: var(--yn-hint);
+}
+/* Наклейка «до −30%» — как .sticker в hero лендинга */
+@keyframes vg-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -6px; }
+}
+.vg-land-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  transform: rotate(6deg);
+  background: var(--yn-accent);
+  color: var(--yn-paper);
+  border: 3px solid var(--yn-ink);
+  border-radius: 14px;
+  padding: 6px 10px;
+  font-family: var(--vg-font-display);
+  font-weight: 900;
+  font-size: 14px;
+  box-shadow: 3px 3px 0 var(--yn-shadow);
+  animation: vg-float 5s ease-in-out infinite;
+  user-select: none;
 }
 .vg-land-steps {
   display: flex;
@@ -827,15 +965,18 @@ button, input, textarea, select {
   align-items: center;
   gap: 10px;
   font-size: 13.5px;
-  color: var(--tgui--text_color, #000);
+  font-weight: 500;
+  color: var(--yn-text);
 }
+/* Номер шага — жёлтый квадратик с чернильной обводкой, как b.num лендинга */
 .vg-land-step > span {
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--vg-grad);
-  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: var(--yn-yellow);
+  border: 2px solid var(--yn-ink);
+  color: var(--yn-ink);
   font-family: var(--vg-font-display);
   font-weight: 700;
   font-size: 11px;

@@ -34,6 +34,23 @@ try {
   if (closingBehavior.mount.isAvailable()) closingBehavior.mount();
 } catch { /* браузер без Telegram */ }
 
+/** Фирменная тема (стикерный стиль лендинга): светлая — жёлтый фон и бумажные
+ *  карточки, тёмная — жёлтый только акцентами. Класс на <html> переключает
+ *  токены --yn-* в index.css; сами компоненты про тему не знают. */
+function syncBrandTheme() {
+  let dark = false;
+  try {
+    dark = miniApp.isDark();
+  } catch {
+    // вне Telegram — по системной теме браузера
+    dark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+  }
+  document.documentElement.classList.toggle('vg-dark', dark);
+  document.documentElement.classList.toggle('vg-light', !dark);
+}
+syncBrandTheme();
+try { miniApp.isDark.sub(syncBrandTheme); } catch { /* вне Telegram */ }
+
 /** Ошибка рендера показывается текстом, а не пустым экраном. */
 class Boundary extends React.Component<{ children: React.ReactNode }, { err: Error | null }> {
   state = { err: null as Error | null };

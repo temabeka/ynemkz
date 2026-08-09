@@ -17,6 +17,8 @@ function Landing({ guest, partners }: { guest?: boolean; partners?: Partner[] })
 
   return (
     <div className="vg-land">
+      {/* Бейдж-наклейка с максимальной скидкой — как стикеры в hero лендинга */}
+      <div className="vg-land-badge">до −{maxPct}%</div>
       <div className="vg-land-title">Одна подписка — скидки каждый день</div>
       <div className="vg-land-sub">
         Ynem — дисконт-клуб Экибастуза: до −{maxPct}% у партнёров города по подписке.

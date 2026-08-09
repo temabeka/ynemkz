@@ -6,8 +6,9 @@ import { backButton, mainButton } from '@telegram-apps/sdk-react';
 import { Button, Placeholder, Spinner } from '@telegram-apps/telegram-ui';
 import { ApiError, apiGet, readCache } from './api';
 
-const BRAND_BG = '#ff8a1e';
-const BRAND_FG = '#ffffff';
+// Фирменные цвета MainButton: кислотно-жёлтый на чернильном (стиль лендинга)
+const BRAND_BG = '#f5ec00';
+const BRAND_FG = '#0c0c0c';
 
 /** Системная нижняя кнопка Telegram как главное действие экрана. */
 export function useMainButton(

@@ -15,8 +15,9 @@ function initialsAvatar(name: string | null, premium: boolean): string {
   const g = c.getContext('2d')!;
   const grad = g.createLinearGradient(0, 0, 128, 128);
   if (premium) {
-    grad.addColorStop(0, '#ff5e2b');
-    grad.addColorStop(1, '#ffc069');
+    // Подписчик: чернильный кружок с кислотно-жёлтым инициалом — стикер бренда
+    grad.addColorStop(0, '#0c0c0c');
+    grad.addColorStop(1, '#2f2c14');
   } else {
     grad.addColorStop(0, '#4b5563');
     grad.addColorStop(1, '#6b7280');
@@ -25,8 +26,8 @@ function initialsAvatar(name: string | null, premium: boolean): string {
   g.beginPath();
   g.arc(64, 64, 64, 0, Math.PI * 2);
   g.fill();
-  g.fillStyle = '#fff';
-  g.font = "700 58px 'Golos Text', -apple-system, sans-serif";
+  g.fillStyle = premium ? '#f5ec00' : '#fff';
+  g.font = "700 58px 'Montserrat', -apple-system, sans-serif";
   g.textAlign = 'center';
   g.textBaseline = 'middle';
   g.fillText((name ?? '').trim().charAt(0).toUpperCase() || 'Y', 64, 72);
@@ -107,16 +108,17 @@ export default function MyQr({ me }: { me: Me | null | undefined }) {
             gradient: {
               type: 'linear',
               rotation: Math.PI / 3,
-              // Тёмные оттенки бренда: на белой карточке QR остаётся контрастным
+              // Акцент → чернильный: тёмные оттенки бренда, на белой карточке
+              // QR остаётся контрастным и читается сканером
               colorStops: [
                 { offset: 0, color: '#e2491f' },
-                { offset: 1, color: '#b45309' },
+                { offset: 1, color: '#0c0c0c' },
               ],
             },
           }
         : { type: 'rounded', color: '#374151' },
-      cornersSquareOptions: { type: 'extra-rounded', color: premium ? '#e2491f' : '#16181d' },
-      cornersDotOptions: { type: 'dot', color: premium ? '#b45309' : '#16181d' },
+      cornersSquareOptions: { type: 'extra-rounded', color: premium ? '#0c0c0c' : '#16181d' },
+      cornersDotOptions: { type: 'dot', color: premium ? '#e2491f' : '#16181d' },
       backgroundOptions: { color: 'transparent' },
     });
     boxRef.current.innerHTML = '';
