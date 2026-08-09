@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ynem.kz — дисконт-клуб Экибастуза</title>
+<meta name="description" content="Одна подписка — скидки каждый день. Дисконт-клуб Экибастуза: до −30% у партнёров города. Сканируй QR на кассе — скидка сразу.">
+<meta property="og:title" content="Ynem.kz — дисконт-клуб Экибастуза">
+<meta property="og:description" content="Одна подписка — скидки каждый день. До −30% у партнёров города.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow: #f5ec00;
+    --ink: #0c0c0c;
+    --paper: #fffef2;
+    --accent: #ff5e2b;
+    --radius: 22px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Montserrat", sans-serif;
+    background: var(--yellow);
+    color: var(--ink);
+    overflow-x: hidden;
+  }
+  .display { font-family: "Unbounded", sans-serif; }
+
+  /* Точки как модули QR — фон-паттерн */
+  .qr-dots {
+    background-image: radial-gradient(var(--ink) 2.2px, transparent 2.2px);
+    background-size: 26px 26px;
+    opacity: 0.10;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  /* --- Шапка --- */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px clamp(16px, 4vw, 48px);
+    background: color-mix(in srgb, var(--yellow) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 3px solid var(--ink);
+  }
+  header img { height: 34px; display: block; }
+  .btn {
+    display: inline-block;
+    font-family: "Unbounded", sans-serif;
+    font-weight: 700; font-size: 14px;
+    color: var(--yellow); background: var(--ink);
+    border: 3px solid var(--ink);
+    padding: 12px 22px; border-radius: 999px;
+    text-decoration: none;
+    transition: transform .15s ease, box-shadow .15s ease;
+    box-shadow: 4px 4px 0 rgba(12,12,12,.25);
+  }
+  .btn:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 rgba(12,12,12,.3); }
+  .btn.ghost { background: transparent; color: var(--ink); }
+
+  /* --- Hero --- */
+  .hero {
+    position: relative;
+    padding: clamp(56px, 9vw, 120px) clamp(16px, 4vw, 48px) 0;
+    text-align: center;
+  }
+  .hero h1 {
+    font-family: "Unbounded", sans-serif;
+    font-weight: 900;
+    font-size: clamp(34px, 7vw, 84px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    max-width: 15ch; margin: 0 auto;
+  }
+  .hero h1 .flip { color: var(--paper); -webkit-text-stroke: 2.5px var(--ink); }
+  .hero p.sub {
+    margin: 26px auto 0; max-width: 52ch;
+    font-size: clamp(15px, 2vw, 19px); font-weight: 600; line-height: 1.55;
+  }
+  .hero .cta { margin: 34px 0 20px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+  /* Наклейки-бейджи в hero */
+  .sticker {
+    position: absolute;
+    font-family: "Unbounded", sans-serif; font-weight: 900;
+    background: var(--paper); border: 3px solid var(--ink); border-radius: 18px;
+    padding: 10px 16px; font-size: clamp(14px, 2vw, 22px);
+    box-shadow: 5px 5px 0 rgba(12,12,12,.28);
+    animation: float 5s ease-in-out infinite;
+    user-select: none;
+  }
+  .sticker.s1 { top: 12%; left: 6%; transform: rotate(-9deg); }
+  .sticker.s2 { top: 8%; right: 7%; transform: rotate(7deg); background: var(--accent); color: var(--paper); animation-delay: -1.6s; }
+  .sticker.s3 { bottom: 4%; left: 10%; transform: rotate(5deg); animation-delay: -3s; }
+  @keyframes float {
+    0%,100% { translate: 0 0; } 50% { translate: 0 -12px; }
+  }
+  @media (max-width: 720px) { .sticker.s1, .sticker.s3 { display: none; } .sticker.s2 { top: 2%; } }
+
+  /* Бегущая строка */
+  .marquee {
+    margin-top: clamp(40px, 6vw, 72px);
+    border-top: 3px solid var(--ink); border-bottom: 3px solid var(--ink);
+    background: var(--ink); color: var(--yellow);
+    overflow: hidden; white-space: nowrap;
+  }
+  .marquee-track {
+    display: inline-block; padding: 12px 0;
+    font-family: "Unbounded", sans-serif; font-weight: 700; font-size: 15px;
+    animation: scroll 28s linear infinite;
+  }
+  .marquee-track span { margin: 0 22px; }
+  @keyframes scroll { to { transform: translateX(-50%); } }
+
+  section { position: relative; padding: clamp(56px, 8vw, 110px) clamp(16px, 4vw, 48px); }
+  h2 {
+    font-family: "Unbounded", sans-serif; font-weight: 900;
+    font-size: clamp(26px, 4.4vw, 46px); text-transform: uppercase;
+    letter-spacing: -0.01em; margin-bottom: clamp(28px, 4vw, 48px);
+  }
+  h2 .tag {
+    display: inline-block; vertical-align: middle;
+    font-size: 12px; letter-spacing: .18em; font-weight: 700;
+    border: 2.5px solid var(--ink); border-radius: 999px; padding: 6px 14px;
+    margin-right: 14px; translate: 0 -6px; background: var(--paper);
+  }
+
+  /* --- Шаги --- */
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; max-width: 1100px; margin: 0 auto; }
+  .step {
+    background: var(--paper); border: 3px solid var(--ink); border-radius: var(--radius);
+    padding: 26px 22px; box-shadow: 6px 6px 0 rgba(12,12,12,.22);
+    transition: transform .18s ease;
+  }
+  .step:hover { transform: translateY(-6px) rotate(-.6deg); }
+  .step b.num {
+    display: grid; place-items: center;
+    width: 46px; height: 46px; border-radius: 14px;
+    background: var(--yellow); border: 3px solid var(--ink);
+    font-family: "Unbounded", sans-serif; font-size: 19px; margin-bottom: 16px;
+  }
+  .step h3 { font-family: "Unbounded", sans-serif; font-size: 17px; margin-bottom: 10px; }
+  .step p { font-size: 14.5px; font-weight: 500; line-height: 1.55; }
+
+  /* --- Партнёры --- */
+  .partners-bg { background: var(--ink); color: var(--yellow); }
+  .partners-bg h2 .tag { background: var(--ink); color: var(--yellow); border-color: var(--yellow); }
+  .partners { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; max-width: 1200px; margin: 0 auto; }
+  .card {
+    background: var(--paper); color: var(--ink);
+    border-radius: var(--radius); border: 3px solid var(--paper);
+    padding: 20px; display: flex; flex-direction: column; gap: 14px;
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .card:hover { transform: translateY(-6px); box-shadow: 0 14px 0 rgba(245,236,0,.35); }
+  .card .head { display: flex; align-items: center; gap: 14px; }
+  .card img.logo {
+    width: 62px; height: 62px; border-radius: 18px; object-fit: cover;
+    border: 3px solid var(--ink); background: #fff;
+  }
+  .card .name { font-family: "Unbounded", sans-serif; font-weight: 700; font-size: 17px; }
+  .card .cat {
+    display: inline-block; margin-top: 5px;
+    font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    background: var(--yellow); border: 2px solid var(--ink); border-radius: 999px; padding: 3px 10px;
+  }
+  .card .pcts { display: flex; gap: 10px; align-items: stretch; }
+  .pct {
+    flex: 1; border: 3px solid var(--ink); border-radius: 16px; padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .pct .v { font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 24px; }
+  .pct .l { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+  .pct.hot { background: var(--yellow); }
+  .note {
+    font-size: 13px; font-weight: 700; color: var(--accent);
+    border: 2px dashed var(--accent); border-radius: 12px; padding: 8px 12px;
+  }
+  .addr { font-size: 13.5px; font-weight: 600; opacity: .75; margin-top: auto; }
+
+  /* --- Подписка --- */
+  .sub-wrap { max-width: 900px; margin: 0 auto; text-align: center; }
+  .price-card {
+    display: inline-block; background: var(--paper);
+    border: 3px solid var(--ink); border-radius: 28px;
+    padding: clamp(28px, 5vw, 48px) clamp(30px, 6vw, 70px);
+    box-shadow: 10px 10px 0 rgba(12,12,12,.25);
+    transform: rotate(-1deg);
+  }
+  .price {
+    font-family: "Unbounded", sans-serif; font-weight: 900;
+    font-size: clamp(44px, 8vw, 88px); line-height: 1;
+  }
+  .price small { font-size: .35em; font-weight: 700; }
+  .price-card p { margin-top: 14px; font-weight: 600; font-size: 15px; }
+  .sub-wrap .btn { margin-top: 30px; font-size: 16px; padding: 16px 34px; }
+
+  footer {
+    border-top: 3px solid var(--ink);
+    padding: 34px clamp(16px, 4vw, 48px);
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    font-weight: 600; font-size: 14px;
+  }
+  footer a { color: var(--ink); font-weight: 800; }
+
+  /* Появление секций */
+  .reveal { opacity: 0; translate: 0 26px; transition: opacity .7s ease, translate .7s ease; }
+  .reveal.on { opacity: 1; translate: 0 0; }
+  @media (prefers-reduced-motion: reduce) {
+    .sticker, .marquee-track { animation: none; }
+    .reveal { opacity: 1; translate: 0 0; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="assets/logo.png" alt="Ynem.kz">
+  <a class="btn" href="https://t.me/ynembot">Открыть в Telegram</a>
+</header>
+
+<div class="hero">
+  <div class="qr-dots"></div>
+  <div class="sticker s1">−30%</div>
+  <div class="sticker s2">скидка сразу</div>
+  <div class="sticker s3">−15%</div>
+  <h1>Одна подписка — <span class="flip">скидки</span> каждый день</h1>
+  <p class="sub">Ynem — дисконт-клуб Экибастуза. Сканируешь QR-наклейку на кассе —
+     скидка применяется сразу. До −30% у партнёров города по подписке,
+     у многих есть базовая скидка без подписки.</p>
+  <div class="cta">
+    <a class="btn" href="https://t.me/ynembot/app">Открыть приложение</a>
+    <a class="btn ghost" href="#partners">Смотреть партнёров</a>
+  </div>
+</div>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>MOFANI −30%</span><span>•</span><span>YAMI YAMI −15%</span><span>•</span>
+    <span>TOR.EKB −15%</span><span>•</span><span>YUMI MARKET −7%</span><span>•</span>
+    <span>YUMI TREND −7%</span><span>•</span><span>LA ROZA −7%</span><span>•</span>
+    <span>JUMP PARK −5%</span><span>•</span>
+    <span>MOFANI −30%</span><span>•</span><span>YAMI YAMI −15%</span><span>•</span>
+    <span>TOR.EKB −15%</span><span>•</span><span>YUMI MARKET −7%</span><span>•</span>
+    <span>YUMI TREND −7%</span><span>•</span><span>LA ROZA −7%</span><span>•</span>
+    <span>JUMP PARK −5%</span><span>•</span>
+  </div>
+</div>
+
+<section class="reveal">
+  <h2><span class="tag">Как это работает</span>Три шага до скидки</h2>
+  <div class="steps">
+    <div class="step">
+      <b class="num">1</b>
+      <h3>Вступи в клуб</h3>
+      <p>Запусти бота <b>@ynembot</b> в Telegram — регистрация в один тап,
+         без паролей и анкет.</p>
+    </div>
+    <div class="step">
+      <b class="num">2</b>
+      <h3>Сканируй QR на кассе</h3>
+      <p>У каждого партнёра на кассе фирменная жёлтая наклейка.
+         Наведи камеру — откроется экран скидки.</p>
+    </div>
+    <div class="step">
+      <b class="num">3</b>
+      <h3>Скидка сразу</h3>
+      <p>Покажи экран кассиру — скидка применяется мгновенно.
+         Приложение считает, сколько ты сэкономил.</p>
+    </div>
+  </div>
+</section>
+
+<section class="partners-bg reveal" id="partners">
+  <h2><span class="tag">Партнёры</span>Где действует клуб</h2>
+  <div class="partners">
+
+    <div class="card">
+      <div class="head">
+        <img class="logo" src="assets/partners/mofanicoffee.jpg" alt="Mofani">
+        <div><div class="name">Mofani</div><span class="cat">Еда</span></div>
+      </div>
+      <div class="pcts">
+        <div class="pct hot"><span class="v">−30%</span><span class="l">по подписке</span></div>
+        <div class="pct"><span class="v">−10%</span><span class="l">без подписки</span></div>
+      </div>
+      <div class="addr">📍 Кеншілер, 126</div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <img class="logo" src="assets/partners/yamiyami.jpg" alt="Yami Yami">
+        <div><div class="name">Yami Yami</div><span class="cat">Еда</span></div>
+      </div>
+      <div class="pcts">
+        <div class="pct hot"><span class="v">−15%</span><span class="l">по подписке</span></div>
+        <div class="pct"><span class="v">−7%</span><span class="l">без подписки</span></div>
+      </div>
+      <div class="addr">📍 М. Әуезова, 47Б · парк Maxi Mall</div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <img class="logo" src="assets/partners/torekb.jpg" alt="Tor.ekb">
+        <div><div class="name">Tor.ekb</div><span class="cat">Еда</span></div>
+      </div>
+      <div class="pcts">
+        <div class="pct hot"><span class="v">−15%</span><span class="l">по подписке</span></div>
+        <div class="pct"><span class="v">−7%</span><span class="l">без подписки</span></div>
+      </div>
+      <div class="addr">📍 ул. 50 лет города, 5</div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <img class="logo" src="assets/partners/yumimarket.jpg" alt="Yumi Market">
+        <div><div class="name">Yumi Market</div><span class="cat">Шопинг</span></div>
+      </div>
+      <div class="pcts">
+        <div class="pct hot"><span class="v">−7%</span><span class="l">для всех</span></div>
+      </div>
+      <div class="addr">📍 Мәшһүр Жүсіпа, 48</div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <img class="logo" src="assets/partners/yumitrend.jpg" alt="Yumi Trend">
+        <div><div class="name">Yumi Trend</div><span class="cat">Шопинг</span></div>
+      </div>
+      <div class="pcts">
+        <div class="pct hot"><span class="v">−7%</span><span class="l">для всех</span></div>
+      </div>
+      <div class="note">💵 при оплате наличными</div>
+      <div class="addr">📍 Мәшһүр Жүсіпа, 48</div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <img class="logo" src="assets/partners/laroza.jpg" alt="La Roza">
+        <div><div class="name">La Roza</div><span class="cat">Шопинг</span></div>
+      </div>
+      <div class="pcts">
+        <div class="pct hot"><span class="v">−7%</span><span class="l">для всех</span></div>
+      </div>
+      <div class="addr">📍 М. Әуезова, 42</div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <img class="logo" src="assets/partners/jumppark.jpg" alt="Jump Park">
+        <div><div class="name">Jump Park</div><span class="cat">Развлечения</span></div>
+      </div>
+      <div class="pcts">
+        <div class="pct hot"><span class="v">−5%</span><span class="l">для всех</span></div>
+      </div>
+      <div class="note">💵 на комбо-акции</div>
+      <div class="addr">📍 Королёва, 78/1</div>
+    </div>
+
+  </div>
+</section>
+
+<section class="reveal">
+  <div class="sub-wrap">
+    <h2><span class="tag">Подписка</span>Окупается за пару визитов</h2>
+    <div class="price-card">
+      <div class="price">2000&nbsp;<small>₸ / 30 дней</small></div>
+      <p>Повышенные скидки у всех партнёров · оплата в боте: Kaspi или Telegram Stars</p>
+    </div>
+    <div><a class="btn" href="https://t.me/ynembot">Оформить в Telegram</a></div>
+  </div>
+</section>
+
+<footer>
+  <span>© Ynem.kz · дисконт-клуб Экибастуза</span>
+  <span>Бот и приложение: <a href="https://t.me/ynembot">@ynembot</a></span>
+</footer>
+
+<script>
+  const io = new IntersectionObserver(
+    (es) => es.forEach((e) => e.isIntersecting && e.target.classList.add('on')),
+    { threshold: 0.12 }
+  );
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+</script>
+
+</body>
+</html>
