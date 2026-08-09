@@ -105,6 +105,16 @@ export default function PartnerPage() {
         )}
       </div>
 
+      {partner.deal_note && (
+        <div style={{
+          marginTop: 10, padding: '10px 14px', borderRadius: 12, fontSize: 14, fontWeight: 700,
+          background: 'rgba(255, 138, 30, 0.14)', color: 'var(--vg-accent)',
+          border: '1px solid rgba(255, 138, 30, 0.35)',
+        }}>
+          💵 Скидка {partner.deal_note}
+        </div>
+      )}
+
       {(partner.address || partner.work_hours) && (
         <div className="vg-card" style={{ marginTop: 12, cursor: 'default' }}>
           <div className="vg-card-body">

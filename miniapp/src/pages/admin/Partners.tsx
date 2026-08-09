@@ -68,6 +68,7 @@ function EditRequestCard({ req, onDecided }: { req: EditRequest; onDecided: () =
 function Editor({ p, onSaved }: { p: AdminPartner; onSaved: () => void }) {
   const [form, setForm] = useState({
     category: p.category ?? '', address: p.address ?? '', work_hours: p.work_hours ?? '',
+    deal_note: p.deal_note ?? '',
     discount_free: p.discount_free, discount_premium: p.discount_premium,
     avg_check: p.avg_check ?? 0, lat: p.lat ?? '', lng: p.lng ?? '',
     user_tg_id: p.user_id ?? '',
@@ -101,7 +102,7 @@ function Editor({ p, onSaved }: { p: AdminPartner; onSaved: () => void }) {
     setBusy(true);
     const body: Record<string, unknown> = {
       category: form.category || null, address: form.address || null,
-      work_hours: form.work_hours || null,
+      work_hours: form.work_hours || null, deal_note: form.deal_note || null,
       discount_free: Number(form.discount_free), discount_premium: Number(form.discount_premium),
     };
     if (form.avg_check) body.avg_check = Number(form.avg_check);
@@ -156,6 +157,7 @@ function Editor({ p, onSaved }: { p: AdminPartner; onSaved: () => void }) {
       </div>
       <Input header="Адрес" value={String(form.address)} onChange={set('address')} />
       <Input header="Часы работы" value={String(form.work_hours)} onChange={set('work_hours')} placeholder="10:00–22:00" />
+      <Input header="Условие скидки" value={String(form.deal_note)} onChange={set('deal_note')} placeholder="при оплате наличными" />
       <div style={{ display: 'flex', gap: 8 }}>
         <Input header="% без подписки (0 = нет)" type="number" value={String(form.discount_free)} onChange={set('discount_free')} />
         <Input header="% подписчикам" type="number" value={String(form.discount_premium)} onChange={set('discount_premium')} />

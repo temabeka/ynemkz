@@ -140,6 +140,8 @@ export interface Partner {
   /** Базовая скидка без подписки; 0 — только по подписке */
   discount_free: number;
   discount_premium: number;
+  /** Условие скидки, например «при оплате наличными» */
+  deal_note: string | null;
   work_hours: string | null;
   logo_url: string | null;
   lat?: number | null;

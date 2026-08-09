@@ -14,7 +14,7 @@ async def catalog(category: str | None = None) -> list[dict]:
     rows = await db.fetch(
         """
         SELECT id, name, category, address, discount_free, discount_premium,
-               work_hours, logo_url, is_paused
+               deal_note, work_hours, logo_url, is_paused
         FROM partners
         WHERE is_active AND NOT is_paused
           AND ($1::text IS NULL OR category = $1)
@@ -43,7 +43,7 @@ async def partner_card(partner_id: int) -> dict:
     row = await db.fetchrow(
         """
         SELECT id, name, category, address, discount_free, discount_premium,
-               work_hours, logo_url, lat, lng
+               deal_note, work_hours, logo_url, lat, lng
         FROM partners WHERE id = $1 AND is_active
         """,
         partner_id,

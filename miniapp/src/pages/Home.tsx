@@ -149,6 +149,9 @@ export default function Home() {
               <div className="vg-card-meta">
                 {p.address ?? ''}{p.work_hours ? ` · ${p.work_hours}` : ''}
                 {p.discount_free > 0 ? ` · без подписки −${p.discount_free}%` : ''}
+                {p.deal_note && (
+                  <span style={{ color: 'var(--vg-accent)', fontWeight: 600 }}> · 💵 {p.deal_note}</span>
+                )}
               </div>
             </div>
             <div className="vg-pct">−{p.discount_premium}%</div>
