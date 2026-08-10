@@ -15,7 +15,7 @@ from bot.services import qr
 
 CODE_TTL = timedelta(minutes=30)      # фолбэк-код (вариант A)
 SCREEN_TTL = timedelta(minutes=5)     # экран активации (вариант C)
-COOLDOWN = timedelta(minutes=30)      # пауза между активациями у одного партнёра
+COOLDOWN = timedelta(minutes=10)      # пауза между активациями у одного партнёра
 
 
 class RedeemError(Exception):
@@ -60,8 +60,9 @@ async def issue(
             )
             if last is not None and now - last < COOLDOWN:
                 wait_min = int((COOLDOWN - (now - last)).total_seconds() // 60) + 1
+                cooldown_min = int(COOLDOWN.total_seconds() // 60)
                 raise RedeemError(
-                    f"Скидку у этого партнёра можно активировать раз в 30 минут. "
+                    f"Скидку у этого партнёра можно активировать раз в {cooldown_min} минут. "
                     f"Попробуйте через {wait_min} мин."
                 )
             try:
