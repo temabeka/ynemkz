@@ -97,7 +97,7 @@ async def stats() -> dict:
         SELECT
           (SELECT count(*) FROM users)                                        AS users_total,
           (SELECT count(*) FROM users WHERE created_at::date = now()::date)   AS users_today,
-          (SELECT count(*) FROM subscriptions
+          (SELECT count(DISTINCT user_id) FROM subscriptions
              WHERE status = 'active' AND expires_at > now())                  AS subs_active,
           (SELECT count(*) FROM subscriptions WHERE status = 'pending')       AS subs_pending,
           (SELECT count(*) FROM redemptions
