@@ -8,8 +8,6 @@ import asyncpg
 from bot import db
 from bot.config import settings
 
-SUB_PERIOD = timedelta(days=30)
-
 
 async def has_pending(user_id: int) -> bool:
     """Защита: не более 1 pending-заявки на пользователя."""
@@ -78,10 +76,15 @@ async def reject(subscription_id: int, admin_id: int) -> dict | None:
 async def approve_stars(user_id: int, charge_id: str, amount_stars: int) -> dict | None:
     """Оплата Telegram Stars: подписка активируется мгновенно, без админа.
 
+    Каждый платёж — ОТДЕЛЬНАЯ строка (как Kaspi через approve): tg_charge_id
+    никогда не перезаписывается, поэтому идемпотентность и возврат остаются
+    рабочими для каждого платежа, а история денег не теряется. Продление
+    стекуется: expires_at новой строки = GREATEST(max активный expires_at,
+    now()) + 30 дней (раздел 3.1).
+
     Идемпотентность: charge_id уникален (индекс uq_subscriptions_tg_charge_id,
-    миграция 003) — повторная доставка successful_payment возвращает None,
-    вторая подписка не создаётся. При активной подписке — продление со
-    стекингом: expires_at = GREATEST(expires_at, now()) + 30 дней (раздел 3.1).
+    миграция 003) — повторная доставка successful_payment возвращает None
+    (dup-check + гонка ловится UniqueViolationError на вставке).
     """
     now = datetime.now(timezone.utc)
 
@@ -92,38 +95,22 @@ async def approve_stars(user_id: int, charge_id: str, amount_stars: int) -> dict
     if dup:
         return None
 
-    # Продление: активная подписка стекуется, вторая строка не создаётся.
-    row = await db.fetchrow(
-        """
-        UPDATE subscriptions
-        SET expires_at = GREATEST(expires_at, $2) + interval '30 days',
-            paid_at = $2, amount = $3, payment_method = 'stars', tg_charge_id = $4
-        WHERE id = (SELECT id FROM subscriptions
-                    WHERE user_id = $1 AND status = 'active' AND expires_at > $2
-                    ORDER BY expires_at DESC LIMIT 1)
-          AND tg_charge_id IS DISTINCT FROM $4
-        RETURNING *
-        """,
-        user_id,
-        now,
-        amount_stars,
-        charge_id,
-    )
-    if row:
-        return dict(row)
-
     try:
         row = await db.fetchrow(
             """
             INSERT INTO subscriptions (user_id, status, amount, paid_at, expires_at,
                                        payment_method, tg_charge_id)
-            VALUES ($1, 'active', $2, $3, $4, 'stars', $5)
+            VALUES ($1, 'active', $2, $3,
+                    coalesce(
+                        (SELECT max(expires_at) FROM subscriptions
+                         WHERE user_id = $1 AND status = 'active' AND expires_at > $3),
+                        $3) + interval '30 days',
+                    'stars', $4)
             RETURNING *
             """,
             user_id,
             amount_stars,
             now,
-            now + SUB_PERIOD,
             charge_id,
         )
     except asyncpg.UniqueViolationError:
