@@ -46,9 +46,8 @@ async def issue(
     async with db.pool().acquire() as conn:
         async with conn.transaction():
             await conn.execute(
-                "SELECT pg_advisory_xact_lock(hashtextextended($1::text || ':' || $2::text, 0))",
-                user_id,
-                partner_id,
+                "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+                f"{user_id}:{partner_id}",
             )
             last = await conn.fetchval(
                 """
