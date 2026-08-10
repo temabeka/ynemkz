@@ -1,7 +1,8 @@
 """Активация скидок: выдача экрана (вариант C) и фолбэк-код (вариант A).
 
-Анти-фрод (раздел 3.2): лимит 1 активация у партнёра в день на пользователя,
-привязка к партнёру, TTL 30 мин у кода / 5 мин у экрана.
+Анти-фрод (раздел 3.2): пауза COOLDOWN между активациями у одного партнёра
+(можно несколько раз в день), привязка к партнёру, TTL 30 мин у кода /
+5 мин у экрана.
 """
 from __future__ import annotations
 
@@ -14,29 +15,11 @@ from bot.services import qr
 
 CODE_TTL = timedelta(minutes=30)      # фолбэк-код (вариант A)
 SCREEN_TTL = timedelta(minutes=5)     # экран активации (вариант C)
-
-# Атомарную гарантию лимита даёт уникальный индекс
-# uq_redemptions_user_partner_day (user_id, partner_id, issued_on) — миграция 003.
-_DAILY_LIMIT_MSG = "Вы уже активировали скидку у этого партнёра сегодня."
+COOLDOWN = timedelta(minutes=30)      # пауза между активациями у одного партнёра
 
 
 class RedeemError(Exception):
-    """Ошибка бизнес-правила активации (лимит, нет подписки и т.п.)."""
-
-
-async def _check_daily_limit(user_id: int, partner_id: int) -> None:
-    """Быстрый pre-check; настоящая защита от гонки — уникальный индекс в issue()."""
-    used = await db.fetchval(
-        """
-        SELECT count(*) FROM redemptions
-        WHERE user_id = $1 AND partner_id = $2
-          AND issued_on = now()::date
-        """,
-        user_id,
-        partner_id,
-    )
-    if used:
-        raise RedeemError(_DAILY_LIMIT_MSG)
+    """Ошибка бизнес-правила активации (кулдаун, нет подписки и т.п.)."""
 
 
 async def issue(
@@ -53,33 +36,57 @@ async def issue(
       кассир ничего не вводит. False — фолбэк A, код гасится кассиром.
     discount: % на момент визита — фиксируется, чтобы история не менялась
       при смене процента партнёра.
-    """
-    await _check_daily_limit(user_id, partner_id)
 
+    Кулдаун и вставка — в одной транзакции под advisory-lock пары
+    (user, partner): параллельные «клиент отсканировал наклейку + кассир
+    отсканировал клиента» не создадут два визита (раздел 3.2).
+    """
     now = datetime.now(timezone.utc)
     code = qr.gen_code()
-    try:
-        row = await db.fetchrow(
-            """
-            INSERT INTO redemptions (code, user_id, partner_id, type, status, issued_at, used_at, expires_at, discount)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            RETURNING *
-            """,
-            code,
-            user_id,
-            partner_id,
-            kind,
-            "used" if auto_use else "issued",
-            now,
-            now if auto_use else None,
-            now + (SCREEN_TTL if auto_use else CODE_TTL),
-            discount,
-        )
-    except asyncpg.UniqueViolationError as e:
-        # Гонка двух параллельных активаций: лимит держит уникальный индекс.
-        if e.constraint_name == "uq_redemptions_user_partner_day":
-            raise RedeemError(_DAILY_LIMIT_MSG) from e
-        raise
+    async with db.pool().acquire() as conn:
+        async with conn.transaction():
+            await conn.execute(
+                "SELECT pg_advisory_xact_lock(hashtextextended($1::text || ':' || $2::text, 0))",
+                user_id,
+                partner_id,
+            )
+            last = await conn.fetchval(
+                """
+                SELECT issued_at FROM redemptions
+                WHERE user_id = $1 AND partner_id = $2
+                ORDER BY issued_at DESC LIMIT 1
+                """,
+                user_id,
+                partner_id,
+            )
+            if last is not None and now - last < COOLDOWN:
+                wait_min = int((COOLDOWN - (now - last)).total_seconds() // 60) + 1
+                raise RedeemError(
+                    f"Скидку у этого партнёра можно активировать раз в 30 минут. "
+                    f"Попробуйте через {wait_min} мин."
+                )
+            try:
+                row = await conn.fetchrow(
+                    """
+                    INSERT INTO redemptions (code, user_id, partner_id, type, status, issued_at, used_at, expires_at, discount)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                    RETURNING *
+                    """,
+                    code,
+                    user_id,
+                    partner_id,
+                    kind,
+                    "used" if auto_use else "issued",
+                    now,
+                    now if auto_use else None,
+                    now + (SCREEN_TTL if auto_use else CODE_TTL),
+                    discount,
+                )
+            except asyncpg.UniqueViolationError as e:
+                # Старый дневной индекс ещё в БД (миграция 012 не прогнана)
+                if e.constraint_name == "uq_redemptions_user_partner_day":
+                    raise RedeemError("Вы уже активировали скидку у этого партнёра сегодня.") from e
+                raise
     return dict(row)
 
 
